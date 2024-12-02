@@ -10,7 +10,7 @@ import TrackItem from "@/components/music/TrackItem";
 import TrackDeck from "@/components/music/TrackDeck";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
-import jioSaavnLogo from "@/assets/media/img/logo/jioSaavn.png";
+import jioSaavnLogo from "@/assets/media/img/logo/jioSaavn.svg";
 import WebSpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
