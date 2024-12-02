@@ -32,7 +32,7 @@ In addition to the key features mentioned above, Flexiyo also offers:
 
 <h1>Developers</h1>
 
-Flexiyo is developed and managed by Kaushal Krishna from Florixer, a passionate developer dedicated to creating innovative solutions for social networking.
+Flexiyo is developed and managed by Kaushal Krishna from India, a passionate developer dedicated to creating innovative and demanding products in the market.
 
 <h1>Join Us!</h1>
 
