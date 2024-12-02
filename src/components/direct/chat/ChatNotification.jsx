@@ -11,7 +11,7 @@ const ChatNotification = () => {
     if (!socket) return;
 
     const handleReceiveMessage = ({ senderId, content, roomId }) => {
-      if (senderId === userInfo.id) return;
+      if (senderId === userInfo?.id) return;
 
       const room = inboxItems.find((item) => item?.roomDetails?.id === roomId);
       if (!room) return;
@@ -22,12 +22,12 @@ const ChatNotification = () => {
       setTimeout(() => setNotification(null), 2500);
     };
 
-    socket.on("message_received", handleReceiveMessage);
+    socket?.on("message_received", handleReceiveMessage);
 
     return () => {
-      socket.off("message_received", handleReceiveMessage);
+      socket?.off("message_received", handleReceiveMessage);
     };
-  }, [socket, userInfo.id, inboxItems, setInboxItems]);
+  }, [socket, userInfo?.id, inboxItems, setInboxItems]);
 
   return (
     <div
