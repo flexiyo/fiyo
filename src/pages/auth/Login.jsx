@@ -7,7 +7,7 @@ import { useFormik } from "formik";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import UserContext from "@/context/user/UserContext";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "@/assets/media/img/logo/flexomate_gradient.jpg";
+import logo from "@/assets/media/img/logo/flexiyo.svg";
 
 const Login = () => {
   const { isUserAuthenticated, setIsUserAuthenticated, setUserInfo } =
