@@ -17,7 +17,7 @@ import TypewriterComponent from "typewriter-effect";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import UserContext from "@/context/user/UserContext";
-import logo from "@/assets/media/img/logo/flexomate_gradient.jpg";
+import logo from "@/assets/media/img/logo/flexiyo.svg";
 
 const Signup = () => {
   document.title = "Flexiyo";
