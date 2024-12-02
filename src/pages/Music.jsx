@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Menu, MenuItem } from "@mui/material";
 import axios from "axios";
 import Modal from "react-modal";
@@ -10,7 +10,7 @@ import TrackItem from "@/components/music/TrackItem";
 import TrackDeck from "@/components/music/TrackDeck";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
-import spotifyLogo from "@/assets/media/img/logo/spotifyLogo.svg";
+import jioSaavnLogo from "@/assets/media/img/logo/jioSaavn.png";
 import WebSpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -426,7 +426,7 @@ const Music = () => {
           <Headroom>
             <CustomTopNavbar
               navbarPrevPage="/"
-              navbarCover={spotifyLogo}
+              navbarCover={jioSaavnLogo}
               navbarTitle="Music"
               navbarFirstIcon="fa fa-list-music"
               navbarSecondIcon="fa fa-gear"
