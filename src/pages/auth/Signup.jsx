@@ -313,6 +313,7 @@ const Signup = () => {
                 type="text"
                 label="Full Name *"
                 variant="outlined"
+                fullWidth={true}
                 placeholder="John"
                 InputProps={{ style: { borderRadius: ".7rem" } }}
                 name="fullName"
@@ -331,6 +332,7 @@ const Signup = () => {
                 type="text"
                 label="Create Username *"
                 variant="outlined"
+                fullWidth={true}
                 placeholder="johndoe123"
                 InputProps={{ style: { borderRadius: ".7rem" } }}
                 name="username"
@@ -368,6 +370,7 @@ const Signup = () => {
                 type="date"
                 label="Date of Birth *"
                 variant="outlined"
+                fullWidth={true}
                 InputProps={{ style: { borderRadius: ".7rem" } }}
                 name="dob"
                 value={secondFormik.values.dob}
@@ -379,6 +382,7 @@ const Signup = () => {
               />
               <FormControl
                 sx={{ textAlign: "left", mt: 2 }}
+                fullWidth={true}
                 error={
                   secondFormik.touched.accountType &&
                   Boolean(secondFormik.errors.accountType)
@@ -430,6 +434,7 @@ const Signup = () => {
                 type={passwordVisibility.password ? "text" : "password"}
                 label="Password *"
                 variant="outlined"
+                fullWidth={true}
                 placeholder="Create Password"
                 InputProps={{
                   endAdornment: (
@@ -470,6 +475,7 @@ const Signup = () => {
                 type={passwordVisibility.confirmPassword ? "text" : "password"}
                 label="Confirm Password *"
                 variant="outlined"
+                fullWidth={true}
                 placeholder="Confirm Password"
                 InputProps={{
                   endAdornment: (

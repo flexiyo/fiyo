@@ -190,23 +190,73 @@ const Chat = () => {
           navbarSecondIcon="fa fa-video"
           setBorder
         />
-        <div id="chat-messages" className="chat-messages">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`chat-message--${
-                message.senderId !== userInfo.id ? "other" : "self"
-              }`}
-            >
-              {message.senderId !== userInfo.id && (
-                <LazyLoadImage
-                  src={recipientInfo?.avatar}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              )}
-              <span msg-type="text">{message.content}</span>
-            </div>
-          ))}
+        <div
+          id="chat-messages"
+          className="flex w-full flex-col overflow-y-scroll pt-2 h-[calc(100vh-8.5rem)]"
+        >
+          {messages.map((message, index) => {
+            const isLastMessage = index === messages.length - 1;
+            const isFirstMessage = index === 0;
+            const isSameSender =
+              index > 0 && message.senderId === messages[index - 1].senderId;
+            const isSelfMessage = message.senderId === userInfo.id;
+
+            return (
+              <div
+                key={message.id}
+                className={`flex w-full px-3 pt-1 items-start ${
+                  isSelfMessage ? "justify-end" : "justify-start"
+                }`}
+              >
+                {message.senderId !== userInfo.id && (
+                  <LazyLoadImage
+                    src={recipientInfo?.avatar}
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                )}
+                <div className="flex flex-col max-w-[70%]">
+                  {message.type === "text" && (
+                    <span
+                      className={`text-left py-2 px-3 break-words rounded-3xl ${
+                        isSelfMessage
+                          ? isFirstMessage
+                            ? "bg-[#5408ff] rounded-br-md"
+                            : isLastMessage
+                            ? "bg-[#5408ff] rounded-tr-md"
+                            : "bg-[#5408ff] rounded-tr-md rounded-br-md"
+                          : isFirstMessage
+                          ? "bg-[#222933] mx-2 rounded-tl-xl rounded-tr-xl rounded-bl-none rounded-br-none"
+                          : isLastMessage
+                          ? "bg-[#222933] mx-2 rounded-tr-md rounded-br-xl"
+                          : "bg-[#222933] mx-2 rounded-tl-none rounded-bl-none"
+                      }`}
+                    >
+                      {message.content} 
+                    </span>
+                  )}
+                  {index === messages.length - 1 &&
+                    initializeMessageStock(roomId)?.seenBy.some(
+                      (user) =>
+                        user.userId ===
+                          roomDetails?.members?.find(
+                            (member) => member.id !== userInfo.id,
+                          )?.id && user.lastSeenMessageId === message.id,
+                    ) &&
+                    inboxItems.find((item) => item.roomDetails.id === roomId)
+                      ?.lastLog?.timing && (
+                      <span className="text-xs text-gray-500 mt-1 text-right">
+                        Seen&nbsp;
+                        {
+                          inboxItems.find(
+                            (item) => item.roomDetails.id === roomId,
+                          )?.lastLog?.timing
+                        }
+                      </span>
+                    )}
+                </div>
+              </div>
+            );
+          })}
         </div>
         <div className="chat-messenger">
           <form className="chat-messenger-box" onSubmit={handleSendMessage}>

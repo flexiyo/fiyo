@@ -186,6 +186,7 @@ const Login = () => {
               type="text"
               label="Email or Username *"
               variant="outlined"
+              fullWidth={true}
               name="username"
               autoComplete="username"
               value={formik.values.username}
@@ -202,6 +203,7 @@ const Login = () => {
               type="password"
               label="Password *"
               variant="outlined"
+              fullWidth={true}
               name="password"
               autoComplete="current-password"
               value={formik.values.password}

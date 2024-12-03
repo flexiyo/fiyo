@@ -2253,54 +2253,6 @@ b {
   border-radius: 50%;
 }
 
-.chat-messages {
-  display: flex;
-  width: 100%;
-  height: calc(100vh - 8.5rem);
-  flex-direction: column;
-  overflow-y: scroll;
-}
-
-.chat-message--other {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  padding: 1rem 1rem 0 1rem;
-}
-
-.chat-message--self {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  padding: 1rem 1rem 0 1rem;
-  word-wrap: break-word;
-}
-
-.chat-message--other-pfp {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-}
-
-.chat-message--other [msg-type="text"] {
-  text-align: left;
-  max-width: 70%;
-  padding: 0.5rem 1rem;
-  margin: 0 0.5rem;
-  border-radius: 1.3rem;
-  background-color: var(--fm-tertiary-bg-color);
-}
-
-.chat-message--self [msg-type="text"] {
-  text-align: left;
-  white-space: pre-wrap;
-  max-width: 70%;
-  padding: 0.5rem 1rem;
-  border-radius: 1.3rem 1.3rem 0;
-  background-color: #5408ff;
-}
-
 .chat-messenger {
   position: fixed;
   bottom: 0;
