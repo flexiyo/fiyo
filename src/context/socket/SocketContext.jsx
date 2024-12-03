@@ -65,31 +65,32 @@ export const SocketProvider = ({ children }) => {
               if (room.roomDetails.type !== "private") {
                 return room;
               }
-
+        
               const lastLog = await getLastLog(room.messageStock, userInfo.id);
 
-              sessionStorage.setItem(
-                "messageStocks",
-                JSON.stringify({
-                  [room.roomDetails.id]: room.messageStock,
-                }),
-              );
-
+              const existingMessageStocks = JSON.parse(sessionStorage.getItem("messageStocks")) || {};
+              
+              const updatedMessageStocks = {
+                ...existingMessageStocks,
+                [room.roomDetails.id]: room.messageStock,
+              };
+              sessionStorage.setItem("messageStocks", JSON.stringify(updatedMessageStocks));
+        
               room.lastLog = lastLog;
               delete room.messageStock;
-
+        
               return room;
             }),
           );
-
+        
           const recipientUserIds = response.flatMap((room) =>
             room.roomDetails.members
               .filter((member) => member !== userInfo.id)
               .map((member) => member),
           );
-
+        
           const recipientUsers = await getBulkUsersDetails(recipientUserIds);
-
+        
           inboxItems.forEach((item) => {
             item.recipientUser = recipientUsers.find(
               (user) =>
@@ -97,9 +98,10 @@ export const SocketProvider = ({ children }) => {
                 user.id !== userInfo.id,
             );
           });
-
+        
           setInboxItems(inboxItems);
         });
+        
 
         socketRef.current?.on("message_received", async (response) => {
           const { id, senderId, content, type, roomId, sentAt } = response;

@@ -62,8 +62,8 @@ const Chat = () => {
     if (
       (userIndex !== -1 &&
         messageStock.seenBy[userIndex].lastSeenMessageId ===
-          lastUnseenMessage.id) ||
-      lastUnseenMessage.senderId === userInfo.id
+          lastUnseenMessage?.id) ||
+      lastUnseenMessage?.senderId === userInfo.id
     ) {
       return;
     }
@@ -73,17 +73,17 @@ const Chat = () => {
     socket?.emit("see_message", {
       roomId,
       senderId: userInfo.id,
-      id: lastUnseenMessage.id,
+      id: lastUnseenMessage?.id,
       seenAt: newDate,
     });
 
     if (userIndex !== -1) {
-      messageStock.seenBy[userIndex].lastSeenMessageId = lastUnseenMessage.id;
+      messageStock.seenBy[userIndex].lastSeenMessageId = lastUnseenMessage?.id;
       messageStock.seenBy[userIndex].seenAt = newDate;
     } else {
       messageStock.seenBy.push({
         userId: userInfo.id,
-        lastSeenMessageId: lastUnseenMessage.id,
+        lastSeenMessageId: lastUnseenMessage?.id,
         seenAt: newDate,
       });
     }
@@ -195,12 +195,12 @@ const Chat = () => {
           className="flex w-full flex-col overflow-y-scroll pt-2 h-[calc(100vh-8.5rem)]"
         >
           {messages.map((message, index) => {
-            const isSelfMessage = message.senderId === userInfo.id;
+            const isSelfMessage = message?.senderId === userInfo.id;
             const isSameSenderPrev =
-              index > 0 && messages[index - 1]?.senderId === message.senderId;
+              index > 0 && messages[index - 1]?.senderId === message?.senderId;
             const isSameSenderNext =
               index < messages.length - 1 &&
-              messages[index + 1]?.senderId === message.senderId;
+              messages[index + 1]?.senderId === message?.senderId;
 
             const isFirstInBlock = !isSameSenderPrev;
             const isLastInBlock = !isSameSenderNext;
@@ -224,7 +224,7 @@ const Chat = () => {
 
             return (
               <div
-                key={message.id}
+                key={message?.id}
                 className={`flex w-full px-3 pt-1 items-start ${
                   isSelfMessage ? "justify-end" : "justify-start"
                 }`}
@@ -236,11 +236,11 @@ const Chat = () => {
                   />
                 )}
                 <div className="flex flex-col max-w-[70%]">
-                  {message.type === "text" && (
+                  {message?.type === "text" && (
                     <span
                       className={`${baseClasses} ${bgColor} ${borderRadius}`}
                     >
-                      {message.content}
+                      {message?.content}
                     </span>
                   )}
                   {index === messages.length - 1 &&
@@ -249,7 +249,7 @@ const Chat = () => {
                         user.userId ===
                           roomDetails?.members?.find(
                             (member) => member.id !== userInfo.id,
-                          ) && user.lastSeenMessageId === message.id && isSelfMessage,
+                          ) && user.lastSeenMessageId === message?.id && isSelfMessage,
                     ) &&
                     inboxItems.find((item) => item.roomDetails.id === roomId)
                       ?.lastLog?.timing && (
