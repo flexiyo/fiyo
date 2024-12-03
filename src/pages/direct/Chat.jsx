@@ -195,11 +195,32 @@ const Chat = () => {
           className="flex w-full flex-col overflow-y-scroll pt-2 h-[calc(100vh-8.5rem)]"
         >
           {messages.map((message, index) => {
-            const isLastMessage = index === messages.length - 1;
-            const isFirstMessage = index === 0;
-            const isSameSender =
-              index > 0 && message.senderId === messages[index - 1].senderId;
             const isSelfMessage = message.senderId === userInfo.id;
+            const isSameSenderPrev =
+              index > 0 && messages[index - 1]?.senderId === message.senderId;
+            const isSameSenderNext =
+              index < messages.length - 1 &&
+              messages[index + 1]?.senderId === message.senderId;
+
+            const isFirstInBlock = !isSameSenderPrev;
+            const isLastInBlock = !isSameSenderNext;
+            const isSingleMessage = !isSameSenderPrev && !isSameSenderNext;
+
+            const bgColor = isSelfMessage ? "bg-[#5408ff]" : "bg-[#222933]";
+            const baseClasses = "text-left py-2 px-3 break-words rounded-3xl";
+            const borderRadius = isSingleMessage
+              ? "rounded-xl"
+              : isSelfMessage
+              ? isFirstInBlock
+                ? "rounded-br-md"
+                : isLastInBlock
+                ? "rounded-tr-md"
+                : "rounded-tr-md rounded-br-md"
+              : isFirstInBlock
+              ? "rounded-bl-md"
+              : isLastInBlock
+              ? "rounded-tl-md ml-11"
+              : "rounded-tl-md rounded-bl-md ml-11";
 
             return (
               <div
@@ -208,30 +229,18 @@ const Chat = () => {
                   isSelfMessage ? "justify-end" : "justify-start"
                 }`}
               >
-                {message.senderId !== userInfo.id && (
+                {!isSelfMessage && isFirstInBlock && (
                   <LazyLoadImage
                     src={recipientInfo?.avatar}
-                    className="w-9 h-9 rounded-full object-cover"
+                    className="w-9 h-9 rounded-full object-cover mr-2"
                   />
                 )}
                 <div className="flex flex-col max-w-[70%]">
                   {message.type === "text" && (
                     <span
-                      className={`text-left py-2 px-3 break-words rounded-3xl ${
-                        isSelfMessage
-                          ? isFirstMessage
-                            ? "bg-[#5408ff] rounded-br-md"
-                            : isLastMessage
-                            ? "bg-[#5408ff] rounded-tr-md"
-                            : "bg-[#5408ff] rounded-tr-md rounded-br-md"
-                          : isFirstMessage
-                          ? "bg-[#222933] mx-2 rounded-tl-xl rounded-tr-xl rounded-bl-none rounded-br-none"
-                          : isLastMessage
-                          ? "bg-[#222933] mx-2 rounded-tr-md rounded-br-xl"
-                          : "bg-[#222933] mx-2 rounded-tl-none rounded-bl-none"
-                      }`}
+                      className={`${baseClasses} ${bgColor} ${borderRadius}`}
                     >
-                      {message.content} 
+                      {message.content}
                     </span>
                   )}
                   {index === messages.length - 1 &&
