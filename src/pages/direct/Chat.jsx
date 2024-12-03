@@ -249,7 +249,7 @@ const Chat = () => {
                         user.userId ===
                           roomDetails?.members?.find(
                             (member) => member.id !== userInfo.id,
-                          ) && user.lastSeenMessageId === message.id,
+                          ) && user.lastSeenMessageId === message.id && isSelfMessage,
                     ) &&
                     inboxItems.find((item) => item.roomDetails.id === roomId)
                       ?.lastLog?.timing && (
