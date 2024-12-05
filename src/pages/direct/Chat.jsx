@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Snowflake from "snowflake-id";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
@@ -12,6 +12,7 @@ import {
   updateMessageStocks,
 } from "@/utils/chat/messageUtils.js";
 import { getLastLog } from "../../utils/chat/messageUtils";
+import { Avatar } from "@mui/material";
 
 const Chat = () => {
   const { socket, inboxItems, setInboxItems } = useContext(SocketContext);
@@ -35,6 +36,8 @@ const Chat = () => {
     return () =>
       mediaQuery.removeEventListener("change", handleMediaQueryChange);
   }, []);
+
+  const navigate = new useNavigate();
 
   useEffect(() => {
     document.title = `Chats • Flexiyo`;
@@ -195,71 +198,91 @@ const Chat = () => {
           className="flex w-full flex-col overflow-y-scroll pt-2 h-[calc(100vh-8.5rem)]"
           onClick={closeUserFilesSheet}
         >
-          {messages.map((message, index) => {
-            const isSelfMessage = message?.senderId === userInfo.id;
-            const isSameSenderPrev =
-              index > 0 && messages[index - 1]?.senderId === message?.senderId;
-            const isSameSenderNext =
-              index < messages.length - 1 &&
-              messages[index + 1]?.senderId === message?.senderId;
+          {messages.length > 0 ? (
+            messages.map((message, index) => {
+              const isSelfMessage = message?.senderId === userInfo.id;
+              const isSameSenderPrev =
+                index > 0 &&
+                messages[index - 1]?.senderId === message?.senderId;
+              const isSameSenderNext =
+                index < messages.length - 1 &&
+                messages[index + 1]?.senderId === message?.senderId;
 
-            const isFirstInBlock = !isSameSenderPrev;
-            const isLastInBlock = !isSameSenderNext;
-            const isSingleMessage = !isSameSenderPrev && !isSameSenderNext;
+              const isFirstInBlock = !isSameSenderPrev;
+              const isLastInBlock = !isSameSenderNext;
+              const isSingleMessage = !isSameSenderPrev && !isSameSenderNext;
 
-            const bgColor = isSelfMessage ? "bg-[#1572db]" : "bg-[#222933]";
-            const baseClasses = "text-left py-2 px-3 break-words rounded-3xl";
-            const borderRadius = isSingleMessage
-              ? "rounded-xl"
-              : isSelfMessage
-              ? isFirstInBlock
-                ? "rounded-br-md"
+              const bgColor = isSelfMessage ? "bg-[#1572db]" : "bg-[#222933]";
+              const baseClasses = "text-left py-2 px-3 break-words rounded-3xl";
+              const borderRadius = isSingleMessage
+                ? "rounded-xl"
+                : isSelfMessage
+                ? isFirstInBlock
+                  ? "rounded-br-md"
+                  : isLastInBlock
+                  ? "rounded-tr-md"
+                  : "rounded-tr-md rounded-br-md"
+                : isFirstInBlock
+                ? "rounded-bl-md"
                 : isLastInBlock
-                ? "rounded-tr-md"
-                : "rounded-tr-md rounded-br-md"
-              : isFirstInBlock
-              ? "rounded-bl-md"
-              : isLastInBlock
-              ? "rounded-tl-md ml-11"
-              : "rounded-tl-md rounded-bl-md ml-11";
+                ? "rounded-tl-md ml-11"
+                : "rounded-tl-md rounded-bl-md ml-11";
 
-            return (
-              <div
-                key={message?.id}
-                className={`flex w-full px-3 pt-1 items-start ${
-                  isSelfMessage ? "justify-end" : "justify-start"
-                }`}
-              >
-                {!isSelfMessage && isFirstInBlock && (
-                  <LazyLoadImage
-                    src={recipientInfo?.avatar}
-                    className="w-9 h-9 rounded-full object-cover mr-2"
-                  />
-                )}
-                <div className="flex flex-col max-w-[70%]">
-                  {message?.type === "text" && (
-                    <span
-                      className={`${baseClasses} ${bgColor} ${borderRadius}`}
-                    >
-                      {message?.content}
-                    </span>
+              return (
+                <div
+                  key={message?.id}
+                  className={`flex w-full px-3 pt-1 items-start ${
+                    isSelfMessage ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  {!isSelfMessage && isFirstInBlock && (
+                    <LazyLoadImage
+                      src={recipientInfo?.avatar}
+                      className="w-9 h-9 rounded-full object-cover mr-2"
+                    />
                   )}
-                  {index === messages.length - 1 &&
-                    inboxItems.find((item) => item.roomDetails.id === roomId)
-                      ?.lastLog.content === "Seen" && (
-                      <span className="text-xs text-gray-500 mt-1 text-right">
-                        Seen&nbsp;
-                        {
-                          inboxItems.find(
-                            (item) => item.roomDetails.id === roomId,
-                          )?.lastLog?.timing
-                        }
+                  <div className="flex flex-col max-w-[70%]">
+                    {message?.type === "text" && (
+                      <span
+                        className={`${baseClasses} ${bgColor} ${borderRadius}`}
+                      >
+                        {message?.content}
                       </span>
                     )}
+                    {index === messages.length - 1 &&
+                      inboxItems.find((item) => item.roomDetails.id === roomId)
+                        ?.lastLog.content === "Seen" && (
+                        <span className="text-xs text-gray-500 mt-1 text-right">
+                          Seen&nbsp;
+                          {
+                            inboxItems.find(
+                              (item) => item.roomDetails.id === roomId,
+                            )?.lastLog?.timing
+                          }
+                        </span>
+                      )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="flex flex-col justify-center items-center">
+              <Avatar
+                src={recipientInfo?.avatar}
+                className="mt-3"
+                sx={{ width: 100, height: 100 }}
+              ></Avatar>
+              <p className="font-bold mt-2">{recipientInfo?.full_name}</p>
+              <p className="text-gray-500 mt-2">@{recipientInfo?.username}</p>
+              <button
+                className="mt-3 bg-slate-800 py-2 px-3 rounded-md"
+                onClick={() => navigate(`/profile/${recipientInfo?.username}`)}
+              >
+                View Profile
+              </button>
+              <p className="mt-5 text-gray-500">Send a message to get started.</p>
+            </div>
+          )}
         </div>
         <div className="chat-messenger">
           <form className="chat-messenger-box" onSubmit={handleSendMessage}>

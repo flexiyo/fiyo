@@ -369,12 +369,12 @@ b {
   position: fixed;
   display: flex;
   flex-direction: column;
-  background-color: var(--fm-body-bg-color);
+  background-color: #0d1320;
+  box-shadow: #1b203f 0px 0px 20px 0px;
   width: var(--fm-left-side-navbar-width);
   height: 100%;
   z-index: 2;
   left: 0;
-  border-right: 0.01rem solid var(--fm-primary-text-muted);
 }
 
 .side-navbar-top {

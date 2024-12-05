@@ -6,12 +6,12 @@ const CustomTopNavbar = ({
   navbarTitle,
   navbarFirstIcon,
   navbarSecondIcon,
+  onSecondIconClick,
   setBorder,
 }) => {
   return (
     <div
-      className="custom-top-navbar"
-      style={setBorder ? { borderBottom: "0.01rem solid var(--fm-primary-border)" } : null}
+      className={`custom-top-navbar ${setBorder && "border-b border-gray-700"}`}
     >
       <div className="custom-top-navbar--left">
         {navbarPrevPage ? (
@@ -32,7 +32,7 @@ const CustomTopNavbar = ({
         <div className="custom-top-navbar--right-icon">
           <i className={navbarFirstIcon}></i>
         </div>
-        <div className="custom-top-navbar--right-icon">
+        <div className="custom-top-navbar--right-icon" onClick={onSecondIconClick}>
           <i className={navbarSecondIcon}></i>
         </div>
       </div>
