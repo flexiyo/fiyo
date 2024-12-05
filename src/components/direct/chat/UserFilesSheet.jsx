@@ -112,7 +112,7 @@ const UserFilesSheet = ({
 
     try {
       const cloudinaryUploadUrl =
-        "https://api.cloudinary.com/v1_1/florixer/upload";
+        "https://api.cloudinary.com/v1/florixer/upload";
       const cloudinaryApiKey = "your_api_key";
       const cloudinaryUploadPreset = "your_upload_preset";
 

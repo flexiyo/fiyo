@@ -193,6 +193,7 @@ const Chat = () => {
         <div
           id="chat-messages"
           className="flex w-full flex-col overflow-y-scroll pt-2 h-[calc(100vh-8.5rem)]"
+          onClick={closeUserFilesSheet}
         >
           {messages.map((message, index) => {
             const isSelfMessage = message?.senderId === userInfo.id;
@@ -206,7 +207,7 @@ const Chat = () => {
             const isLastInBlock = !isSameSenderNext;
             const isSingleMessage = !isSameSenderPrev && !isSameSenderNext;
 
-            const bgColor = isSelfMessage ? "bg-[#5408ff]" : "bg-[#222933]";
+            const bgColor = isSelfMessage ? "bg-[#1572db]" : "bg-[#222933]";
             const baseClasses = "text-left py-2 px-3 break-words rounded-3xl";
             const borderRadius = isSingleMessage
               ? "rounded-xl"
@@ -244,15 +245,8 @@ const Chat = () => {
                     </span>
                   )}
                   {index === messages.length - 1 &&
-                    initializeMessageStock(roomId)?.seenBy.some(
-                      (user) =>
-                        user.userId ===
-                          roomDetails?.members?.find(
-                            (member) => member.id !== userInfo.id,
-                          ) && user.lastSeenMessageId === message?.id && isSelfMessage,
-                    ) &&
                     inboxItems.find((item) => item.roomDetails.id === roomId)
-                      ?.lastLog?.timing && (
+                      ?.lastLog.content === "Seen" && (
                       <span className="text-xs text-gray-500 mt-1 text-right">
                         Seen&nbsp;
                         {
