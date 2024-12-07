@@ -23,6 +23,7 @@ const Chat = () => {
   const inputMessageRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [isUserFilesSheetOpen, setIsUserFilesSheetOpen] = useState(false);
+  const [serialNo, setSerialNo] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const { roomId } = useParams();
   const snowflake = new Snowflake();
@@ -55,6 +56,35 @@ const Chat = () => {
     setMessages(roomMessages);
     inputMessageRef.current?.focus();
   }, [roomId, inboxItems]);
+
+  const chatDivRef = useRef(null);
+
+  useEffect(() => {
+    const chatDiv = chatDivRef.current;
+  
+    const handleScroll = () => {
+      if (chatDiv.scrollTop === 0) {
+        socket?.emit("get_message_stock", { roomId, serialNo });
+        setSerialNo((prev) => prev + 1);
+      }
+    };
+  
+    const handleReceivedMessageStock = (newMessageStock) => {
+      setMessages((prevMessages) => [
+        ...newMessageStock.messages,
+        ...prevMessages,
+      ]);
+    };
+
+    chatDiv?.addEventListener("scroll", handleScroll);
+    socket?.on("receive_message_stock", handleReceivedMessageStock);
+  
+    return () => {
+      chatDiv?.removeEventListener("scroll", handleScroll);
+      socket?.off("receive_message_stock", handleReceivedMessageStock);
+    };
+  }, [roomId, serialNo, socket]);
+  
 
   const markMessagesAsSeen = async (lastUnseenMessage) => {
     const messageStock = initializeMessageStock(roomId);
@@ -280,7 +310,9 @@ const Chat = () => {
               >
                 View Profile
               </button>
-              <p className="mt-5 text-gray-500">Send a message to get started.</p>
+              <p className="mt-5 text-gray-500">
+                Send a message to get started.
+              </p>
             </div>
           )}
         </div>
