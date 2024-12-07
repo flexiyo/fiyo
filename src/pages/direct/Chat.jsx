@@ -15,18 +15,21 @@ import { getLastLog } from "../../utils/chat/messageUtils";
 import { Avatar } from "@mui/material";
 
 const Chat = () => {
+  const snowflake = new Snowflake();
+  const chatDivRef = useRef(null);
+  const inputMessageRef = useRef(null);
+
   const { socket, inboxItems, setInboxItems } = useContext(SocketContext);
   const { userInfo } = useContext(UserContext);
   const [roomDetails, setRoomDetails] = useState(null);
   const [recipientInfo, setRecipientInfo] = useState(null);
   const [inputText, setInputText] = useState("");
-  const inputMessageRef = useRef(null);
   const [messages, setMessages] = useState([]);
+  const [skipCount, setSkipCount] = useState(1);
   const [isUserFilesSheetOpen, setIsUserFilesSheetOpen] = useState(false);
-  const [serialNo, setSerialNo] = useState(1);
-  const [isMobile, setIsMobile] = useState(false);
   const { roomId } = useParams();
-  const snowflake = new Snowflake();
+
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 950px)");
@@ -57,34 +60,39 @@ const Chat = () => {
     inputMessageRef.current?.focus();
   }, [roomId, inboxItems]);
 
-  const chatDivRef = useRef(null);
-
   useEffect(() => {
     const chatDiv = chatDivRef.current;
-  
+
     const handleScroll = () => {
       if (chatDiv.scrollTop === 0) {
-        socket?.emit("get_message_stock", { roomId, serialNo });
-        setSerialNo((prev) => prev + 1);
+        socket?.emit("get_messages", {
+          roomId,
+          socketId: socket.id,
+          skipCount,
+        });
+        setSkipCount((prev) => prev + 1);
       }
     };
-  
-    const handleReceivedMessageStock = (newMessageStock) => {
+
+    const handleReceivedMessages = (response) => {
       setMessages((prevMessages) => [
-        ...newMessageStock.messages,
+        ...response.messageStock.messages,
         ...prevMessages,
       ]);
+
+      if (chatDiv) {
+        chatDiv.scrollTop = chatDiv.scrollHeight - chatDiv.clientHeight;
+      }
     };
 
     chatDiv?.addEventListener("scroll", handleScroll);
-    socket?.on("receive_message_stock", handleReceivedMessageStock);
-  
+    socket.on("messages_got", handleReceivedMessages);
+
     return () => {
       chatDiv?.removeEventListener("scroll", handleScroll);
-      socket?.off("receive_message_stock", handleReceivedMessageStock);
+      socket?.off("messages_got", handleReceivedMessages);
     };
-  }, [roomId, serialNo, socket]);
-  
+  }, [roomId, skipCount, socket]);
 
   const markMessagesAsSeen = async (lastUnseenMessage) => {
     const messageStock = initializeMessageStock(roomId);
@@ -194,7 +202,8 @@ const Chat = () => {
   };
 
   const scrollToBottom = () => {
-    const chatDiv = document.getElementById("chat-messages");
+    // const chatDiv = document.getElementById("chat-messages");
+    const chatDiv = chatDivRef.current;
     if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
   };
 
@@ -224,7 +233,7 @@ const Chat = () => {
           setBorder
         />
         <div
-          id="chat-messages"
+          ref={chatDivRef}
           className="flex w-full flex-col overflow-y-scroll pt-2 h-[calc(100vh-8.5rem)]"
           onClick={closeUserFilesSheet}
         >

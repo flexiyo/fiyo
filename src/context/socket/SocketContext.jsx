@@ -156,6 +156,10 @@ export const SocketProvider = ({ children }) => {
           );
         });
 
+        socketRef.current?.on("messages_got", async (response) => {
+          console.log(response)
+        })
+
         socketRef.current?.on("error", async (response) => {
           if (response.error.name === "ATInvalidError") {
             const { data } = await axios.get(
