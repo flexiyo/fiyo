@@ -23,11 +23,30 @@ import TrackPlayer from "./components/music/TrackPlayer";
 import DirectChatNotification from "./components/direct/chat/ChatNotification";
 import LoadingScreen from "./components/app/LoadingScreen";
 import UserContext from "./context/user/UserContext";
+import NotConnectedToInternet from "./components/app/NotConnectedToInternet";
 
 const App = () => {
   document.title = "Flexiyo";
   const [appLoading, setAppLoading] = useState(true);
   const { loading } = useContext(UserContext);
+  const [connectedToInternet, setConnectedToInternet] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const updateOnlineStatus = () => {
+      setConnectedToInternet(navigator.onLine);
+      if (navigator.onLine) {
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
 
   useEffect(() => {
     const noSelectElements = document.querySelectorAll("#main");
@@ -57,103 +76,142 @@ const App = () => {
   if (appLoading || loading) {
     return <LoadingScreen />;
   }
-  
 
   return (
-      <BrowserRouter>
-        <Navbar />
-        <DirectChatNotification />
-        <TrackPlayer />
-        <Routes>
-          <Route path="*" element={<NotFound404 />} />
-          <Route
-            exact
-            path="/auth/signup"
-            lazy={true}
-            element={<AuthSignup />}
-          />
-          <Route
-            index
-            exact
-            path="/"
-            lazy={true}
-            element={
+    <BrowserRouter>
+      <Navbar />
+      <DirectChatNotification />
+      <TrackPlayer />
+      <Routes>
+        <Route
+          path="*"
+          element={
+            connectedToInternet ? <NotFound404 /> : <NotConnectedToInternet />
+          }
+        />
+        <Route
+          exact
+          path="/auth/signup"
+          lazy={true}
+          element={
+            connectedToInternet ? <AuthSignup /> : <NotConnectedToInternet />
+          }
+        />
+        <Route
+          index
+          exact
+          path="/"
+          lazy={true}
+          element={
+            connectedToInternet ? (
               <ProtectedRoute>
                 <Home />
               </ProtectedRoute>
-            }
-          />
-          <Route exact path="/search" lazy={true} element={<Search />} />
-          <Route exact path="/music" lazy={true} element={<Music />} />
-          <Route
-            exact
-            path="/stories"
-            lazy={true}
-            element={
+            ) : (
+              <NotConnectedToInternet />
+            )
+          }
+        />
+        <Route
+          exact
+          path="/search"
+          lazy={true}
+          element={
+            connectedToInternet ? <Search /> : <NotConnectedToInternet />
+          }
+        />
+        <Route exact path="/music" lazy={true} element={<Music connectedToInternet={connectedToInternet} />} />
+        <Route
+          exact
+          path="/stories"
+          lazy={true}
+          element={
+            connectedToInternet ? (
               <ProtectedRoute>
                 <Stories />
               </ProtectedRoute>
-            }
-          />
-          <Route
-            exact
-            path="/notifications"
-            lazy={true}
-            element={
+            ) : (
+              <NotConnectedToInternet />
+            )
+          }
+        />
+        <Route
+          exact
+          path="/notifications"
+          lazy={true}
+          element={
+            connectedToInternet ? (
               <ProtectedRoute>
                 <Notifications />
               </ProtectedRoute>
-            }
-          />
-          <Route
-            exact
-            path="/direct/inbox"
-            lazy={true}
-            element={
+            ) : (
+              <NotConnectedToInternet />
+            )
+          }
+        />
+        <Route
+          exact
+          path="/direct/inbox"
+          lazy={true}
+          element={
+            connectedToInternet ? (
               <ProtectedRoute>
                 <DirectInbox />
               </ProtectedRoute>
-            }
-          />
-          <Route
-            exact
-            path="direct/t/:roomId"
-            lazy={true}
-            element={
+            ) : (
+              <NotConnectedToInternet />
+            )
+          }
+        />
+        <Route
+          exact
+          path="direct/t/:roomId"
+          lazy={true}
+          element={
+            connectedToInternet ? (
               <ProtectedRoute>
                 <DirectChat />
               </ProtectedRoute>
-            }
-          />
-          <Route
-            exact
-            path="/create"
-            lazy={true}
-            element={
+            ) : (
+              <NotConnectedToInternet />
+            )
+          }
+        />
+        <Route
+          exact
+          path="/create"
+          lazy={true}
+          element={
+            connectedToInternet ? (
               <ProtectedRoute>
                 <Create />
               </ProtectedRoute>
-            }
-          />
-          <Route
-            exact
-            path="/clips"
-            lazy={true}
-            element={
-                <Clips />
-            }
-          />
-          <Route
-            path="/profile"
-            lazy={true}
-            element={
+            ) : (
+              <NotConnectedToInternet />
+            )
+          }
+        />
+        <Route
+          exact
+          path="/clips"
+          lazy={true}
+          element={connectedToInternet ? <Clips /> : <NotConnectedToInternet />}
+        />
+        <Route
+          path="/profile"
+          lazy={true}
+          element={
+            connectedToInternet ? (
               <ProtectedRoute>
                 <Profile />
               </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+            ) : (
+              <NotConnectedToInternet />
+            )
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 };
 

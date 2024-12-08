@@ -15,6 +15,7 @@ import { getLastLog } from "../../utils/chat/messageUtils";
 import { Avatar } from "@mui/material";
 
 const Chat = () => {
+
   const snowflake = new Snowflake();
   const chatDivRef = useRef(null);
   const inputMessageRef = useRef(null);

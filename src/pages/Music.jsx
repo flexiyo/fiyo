@@ -16,7 +16,7 @@ import WebSpeechRecognition, {
 } from "react-speech-recognition";
 
 Modal.setAppElement("#root");
-const Music = () => {
+const Music = ({ connectedToInternet }) => {
   const {
     topTracks,
     setTopTracks,
@@ -39,7 +39,7 @@ const Music = () => {
     useMusicUtility();
 
   const fiyosaavnApiBaseUri = import.meta.env.VITE_FIYOSAAVN_API_BASE_URI;
-  
+
   const [searchText, setSearchText] = useState("");
   const [searchFieldActive, setSearchFieldActive] = useState(false);
   const [printError, setPrintError] = useState("");
@@ -119,21 +119,63 @@ const Music = () => {
     }
   };
 
+  const openDb = async () => {
+    const request = indexedDB.open("MusicCacheDB", 1);
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (e) => reject(e);
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("tracks")) {
+          db.createObjectStore("tracks", { keyPath: "id" });
+        }
+      };
+    });
+  };
+
   const getTopTracks = useCallback(async () => {
     setApiLoading(true);
+    
+    if (!connectedToInternet) {
+      try {
+        const db = await openDb();
+        const transaction = db.transaction("tracks", "readonly");
+        const store = transaction.objectStore("tracks");
+        const cachedTracks = await new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+  
+        if (cachedTracks.length) {
+          setTopTracks(cachedTracks);
+          setTracks(cachedTracks);
+        } else {
+          console.warn("No tracks found in IndexedDB.");
+        }
+      } catch (err) {
+        console.error("Error fetching tracks from IndexedDB:", err);
+      } finally {
+        setApiLoading(false);
+      }
+      return;
+    }
+
     try {
       const { data: response } = await axios.get(
         `${fiyosaavnApiBaseUri}/playlists?id=1134543272&limit=50`,
       );
-      setTopTracks(response.data.songs);
-      setTracks(response.data.songs);
-      setApiLoading(false);
-      return response.data.songs;
+  
+      const tracks = response.data.songs;
+      setTopTracks(tracks);
+      setTracks(tracks);
     } catch (error) {
-      console.error("Error fetching top tracks:", error);
+      console.error("Error fetching top tracks from API:", error);
+    } finally {
       setApiLoading(false);
     }
-  }, [fiyosaavnApiBaseUri]);
+  }, [fiyosaavnApiBaseUri, connectedToInternet]);
+  
 
   const downloadTrack = async () => {
     try {
@@ -269,7 +311,7 @@ const Music = () => {
         trackData = currentTrack;
       }
       setModalDownloadData({
-        fileUrl: trackData.link,
+        fileUrl: URL.createObjectURL(trackData.audioBlob) || trackData.link,
         fileName: `${trackData.name} - ${trackData.artists
           .split(",")[0]
           .trim()}.mp3`,

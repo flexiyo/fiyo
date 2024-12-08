@@ -32,10 +32,6 @@ const TrackPlayer = () => {
   const playAudioBtnRef = useRef(null);
 
   useEffect(() => {
-    // if (!currentTrack.id) {
-    //   return;
-    // }
-
     if (location.pathname === "/music") {
       setIsMusicRoute(true);
     } else {
@@ -158,13 +154,68 @@ const TrackPlayer = () => {
     });
   }, [handleAudioPlay, handleAudioPause]);
 
+  const openDb = async () => {
+    const request = indexedDB.open("MusicCacheDB", 1);
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (e) => reject(e);
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("tracks")) {
+          db.createObjectStore("tracks", { keyPath: "id" });
+        }
+      };
+    });
+  };
+
   useEffect(() => {
     const playAudio = async () => {
-      // setIsAudioLoading(true);
+      setIsAudioLoading(true);
       if (currentTrack.link) {
         try {
+          const db = await openDb();
+          const tx = db.transaction("tracks", "readonly");
+          const store = tx.objectStore("tracks");
+          const cachedTrackData = await new Promise((resolve, reject) => {
+            const request = store.get(currentTrack.id);
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject(event.target.error);
+          });
+
           const audio = audioRef.current;
-          audio.src = currentTrack.link;
+
+          if (cachedTrackData && cachedTrackData.audioBlob) {
+            const blobURL = URL.createObjectURL(cachedTrackData.audioBlob);
+            audio.src = blobURL;
+          } else {
+            const audioBlobResponse = await fetch(currentTrack.link);
+            const audioBlob = await audioBlobResponse.blob();
+
+            const blobURL = URL.createObjectURL(audioBlob);
+
+            audio.src = blobURL;
+
+            const txWrite = db.transaction("tracks", "readwrite");
+            const storeWrite = txWrite.objectStore("tracks");
+
+            if (cachedTrackData) {
+              cachedTrackData.audioBlob = audioBlob;
+
+              storeWrite.put(cachedTrackData);
+            } else {
+              const updatedTrackData = {
+                id: currentTrack.id,
+                name: currentTrack.name,
+                album: currentTrack.album,
+                artists: currentTrack.artists,
+                link: currentTrack.link,
+                audioBlob,
+                hasLyrics: currentTrack.hasLyrics,
+              };
+              storeWrite.put(updatedTrackData);
+            }
+          }
+
           await audio.play();
           setIsAudioPlaying(true);
           setIsAudioLoading(false);
@@ -175,8 +226,9 @@ const TrackPlayer = () => {
         }
       }
     };
+
     playAudio();
-  }, [currentTrack.link]);
+  }, [currentTrack.link, currentTrack.id]);
 
   return currentTrack.id ? (
     <div className="track-player">

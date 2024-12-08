@@ -39,6 +39,9 @@
     "vite": "^5.4.7",
     "vite-plugin-env-compatible": "^2.0.1",
     "vite-plugin-svgr": "^4.2.0",
+    "workbox-cli": "^7.3.0",
+    "workbox-webpack-plugin": "^7.3.0",
+    "workbox-window": "^7.3.0",
     "yup": "^1.4.0"
   },
   "scripts": {
