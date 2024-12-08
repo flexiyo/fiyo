@@ -135,7 +135,7 @@ const Music = ({ connectedToInternet }) => {
 
   const getTopTracks = useCallback(async () => {
     setApiLoading(true);
-    
+
     if (!connectedToInternet) {
       try {
         const db = await openDb();
@@ -146,7 +146,7 @@ const Music = ({ connectedToInternet }) => {
           request.onsuccess = () => resolve(request.result);
           request.onerror = () => reject(request.error);
         });
-  
+
         if (cachedTracks.length) {
           setTopTracks(cachedTracks);
           setTracks(cachedTracks);
@@ -165,7 +165,7 @@ const Music = ({ connectedToInternet }) => {
       const { data: response } = await axios.get(
         `${fiyosaavnApiBaseUri}/playlists?id=1134543272&limit=50`,
       );
-  
+
       const tracks = response.data.songs;
       setTopTracks(tracks);
       setTracks(tracks);
@@ -175,7 +175,6 @@ const Music = ({ connectedToInternet }) => {
       setApiLoading(false);
     }
   }, [fiyosaavnApiBaseUri, connectedToInternet]);
-  
 
   const downloadTrack = async () => {
     try {
@@ -311,10 +310,12 @@ const Music = ({ connectedToInternet }) => {
         trackData = currentTrack;
       }
       setModalDownloadData({
-        fileUrl: URL.createObjectURL(trackData.audioBlob) || trackData.link,
+        fileUrl:
+          (trackData.audioBlob && URL.createObjectURL(trackData.audioBlob)) ||
+          trackData.link,
         fileName: `${trackData.name} - ${trackData.artists
           .split(",")[0]
-          .trim()}.mp3`,
+          .trim()}.mp4`,
         fileImage: trackData.image,
       });
       setIsDownloadModalOpen(true);
