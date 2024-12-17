@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import customAxios from "@/utils/customAxios.js";
 import {
   Container,
   Avatar,
@@ -16,6 +16,7 @@ import {
 import TypewriterComponent from "typewriter-effect";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import AppContext from "@/context/app/AppContext"
 import UserContext from "@/context/user/UserContext";
 import logo from "@/assets/media/img/logo/flexiyo.svg";
 
@@ -24,9 +25,9 @@ const Signup = () => {
 
   const fiyoauthApiBaseUri = import.meta.env.VITE_FIYOAUTH_API_BASE_URI;
 
+  const { isMobile } = useContext(AppContext);
   const { isUserAuthenticated, setIsUserAuthenticated, setUserInfo } =
     useContext(UserContext);
-  const [isMobile, setIsMobile] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState({
     password: false,
     confirmPassword: false,
@@ -36,18 +37,6 @@ const Signup = () => {
   const [isCreateUserAccountReqLoading, setIsCreateUserAccountReqLoading] =
     useState(false);
   const [currentForm, setCurrentForm] = useState("signupForm1");
-
-  useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 600px)");
-    const handleMediaQueryChange = () => setIsMobile(mediaQuery.matches);
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -151,7 +140,7 @@ const Signup = () => {
   const createUserAccount = async () => {
     setIsCreateUserAccountReqLoading(true);
     try {
-      const response = await axios.post(
+      const response = await customAxios.post(
         `${fiyoauthApiBaseUri}/users/register`,
         {
           ...firstFormik.values,

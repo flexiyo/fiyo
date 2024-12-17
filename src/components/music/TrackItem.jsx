@@ -21,40 +21,40 @@ const TrackItem = ({ id, track, index, onOpenDownloadModal }) => {
 
   return (
     <div
-      className="track-item"
+      className="transition-all duration-200 cursor-pointer active:scale-98"
       onClick={handleItemClick}
       id={`trackItem${index}`}
     >
-      <div className="track-item-box">
-        <div className="track-item--cover">
-          <LazyLoadImage
-            src={
-              Array.isArray(track.image)
-                ? contentQuality === "low"
-                  ? track.image[0].url
-                  : contentQuality === "normal"
-                    ? track.image[1].url
-                    : contentQuality === "high"
-                      ? track.image[2].url
-                      : track.image[1].url
-                : track.image
-            }
-            alt="Track Image"
-          />
-        </div>
-        <div className="track-item--details">
-          <span className="track-item--details-name">{track.name}</span>
-          <div className="track-item--details-artists">
-            <span className="track-item--details-artists-item" key={index}>
-              {track.artists.primary
-                ? track.artists.primary.length > 1
-                  ? track.artists.primary
-                      .map((artist) => artist.name)
-                      .join(", ")
-                  : track.artists.primary.map((artist) => artist.name)
-                : track.artists}
-            </span>
-          </div>
+      <div className="grid grid-cols-[20%_70%_10%] mb-4 h-16 items-center place-items-center">
+        <LazyLoadImage
+          className="overflow-hidden mx-auto w-14 h-14 object-cover rounded-sm"
+          src={
+            Array.isArray(track.image)
+              ? contentQuality === "low"
+                ? track.image[0].url
+                : contentQuality === "normal"
+                ? track.image[1].url
+                : contentQuality === "high"
+                ? track.image[2].url
+                : track.image[1].url
+              : track.image
+          }
+          alt="Track"
+        />
+        <div className="w-full flex flex-col pl-2 font-[SpotifyMedium] pr-5">
+          <span className="text-sm truncate whitespace-nowrap overflow-hidden w-2/10">
+            {track.name}
+          </span>
+          <span
+            className="text-xs text-gray-400 truncate whitespace-nowrap overflow-hidden w-9/10"
+            key={index}
+          >
+            {track.artists.primary
+              ? track.artists.primary.length > 1
+                ? track.artists.primary.map((artist) => artist.name).join(", ")
+                : track.artists.primary.map((artist) => artist.name)
+              : track.artists}
+          </span>
         </div>
         <div className="track-item--details-download">
           {isDownloadLoading && (

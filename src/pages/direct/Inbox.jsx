@@ -1,25 +1,11 @@
-import { useState, useEffect, useContext } from "react";
-import matchMedia from "matchmedia";
+import { useContext } from "react";
 import InboxList from "@/components/direct/InboxList";
+import AppContext from "@/context/app/AppContext";
 
 const Inbox = () => {
   document.title = "Inbox • Chats";
 
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 950px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
+  const { isMobile } = useContext(AppContext);
 
   return (
     <section id="inbox" className="flex border-r-gray-500">
@@ -28,9 +14,7 @@ const Inbox = () => {
       ) : (
         <>
           <InboxList />
-          <div
-            className="flex flex-col justify-center items-center h-screen w-full"
-          >
+          <div className="flex flex-col justify-center items-center h-screen w-full">
             <svg
               className="chat-icon w-28 h-28 p-6 border-4 border-white rounded-full"
               title="Chat with your mates"
@@ -49,7 +33,9 @@ const Inbox = () => {
             </svg>
             <br />
             <p className="text-gray-500">
-              Click &nbsp;<kbd className="fal fa-pen-to-square p-2 rounded-full"></kbd>&nbsp; to create a room and start chatting.
+              Click &nbsp;
+              <kbd className="fal fa-pen-to-square p-2 rounded-full"></kbd>
+              &nbsp; to create a room and start chatting.
             </p>
           </div>
         </>

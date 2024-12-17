@@ -1,7 +1,6 @@
 import { useState } from "react";
 import ClipItem from "@/components/clips/ClipItem";
 import clip1 from "@/assets/media/vid/clip.mp4";
-import clip2 from "@/assets/media/vid/clip2.mp4";
 
 const Clips = () => {
   document.title = "Flexiyo";
@@ -50,7 +49,7 @@ const Clips = () => {
       },
       {
         id: "Dh42Lwb5Eh1LahsBcQ7Pm",
-        src: clip2,
+        src: clip1,
         thumb: "https://demo.tiny.pictures/example2.jpg",
         metadata: {
           caption: "Difference between Indian Culture and Western Culture",

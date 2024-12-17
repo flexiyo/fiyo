@@ -1,26 +1,13 @@
-import React from "react";
-import matchMedia from "matchmedia";
+import { useContext } from "react";
 import TodayPicks from "@/components/home/TodayPicks";
 import Post from "@/components/home/Post";
 import HomeNavbar from "@/layout/items/HomeNavbar";
+import AppContext from "@/context/app/AppContext";
 export default function Home() {
   document.title = "Flexiyo";
 
-  const [isMobile, setIsMobile] = React.useState(false);
+  const { isMobile } = useContext(AppContext);
 
-  React.useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 600px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
   return (
     <>
       <section id="home">

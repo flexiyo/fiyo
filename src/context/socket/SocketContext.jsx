@@ -65,32 +65,36 @@ export const SocketProvider = ({ children }) => {
               if (room.roomDetails.type !== "private") {
                 return room;
               }
-        
+
               const lastLog = await getLastLog(room.messageStock, userInfo.id);
 
-              const existingMessageStocks = JSON.parse(sessionStorage.getItem("messageStocks")) || {};
-              
+              const existingMessageStocks =
+                JSON.parse(sessionStorage.getItem("messageStocks")) || {};
+
               const updatedMessageStocks = {
                 ...existingMessageStocks,
                 [room.roomDetails.id]: room.messageStock,
               };
-              sessionStorage.setItem("messageStocks", JSON.stringify(updatedMessageStocks));
-        
+              sessionStorage.setItem(
+                "messageStocks",
+                JSON.stringify(updatedMessageStocks),
+              );
+
               room.lastLog = lastLog;
               delete room.messageStock;
-        
+
               return room;
             }),
           );
-        
+
           const recipientUserIds = response.flatMap((room) =>
             room.roomDetails.members
               .filter((member) => member !== userInfo.id)
               .map((member) => member),
           );
-        
+
           const recipientUsers = await getBulkUsersDetails(recipientUserIds);
-        
+
           inboxItems.forEach((item) => {
             item.recipientUser = recipientUsers.find(
               (user) =>
@@ -98,10 +102,9 @@ export const SocketProvider = ({ children }) => {
                 user.id !== userInfo.id,
             );
           });
-        
+
           setInboxItems(inboxItems);
         });
-        
 
         socketRef.current?.on("message_received", async (response) => {
           const { id, senderId, content, type, roomId, sentAt } = response;
@@ -157,32 +160,42 @@ export const SocketProvider = ({ children }) => {
         });
 
         socketRef.current?.on("messages_got", async (response) => {
-          console.log(response)
-        })
+          console.log(response);
+        });
 
         socketRef.current?.on("error", async (response) => {
           if (response.error.name === "ATInvalidError") {
-            const { data } = await axios.get(
-              `${fiyoauthApiBaseUri}/tokens/check`,
-              {
-                headers: {
-                  fiyoat: JSON.parse(localStorage.getItem("userInfo")).tokens
-                    .at,
-                  fiyort: JSON.parse(localStorage.getItem("userInfo")).tokens
-                    .rt,
+            try {
+              const { data } = await axios.get(
+                `${fiyoauthApiBaseUri}/tokens/check`,
+                {
+                  headers: {
+                    fiyoat: JSON.parse(localStorage.getItem("userInfo")).tokens
+                      .at,
+                    fiyort: JSON.parse(localStorage.getItem("userInfo")).tokens
+                      .rt,
+                  },
                 },
-              },
-            );
-            localStorage.setItem(
-              "userInfo",
-              JSON.stringify({
-                ...JSON.parse(localStorage.getItem("userInfo")),
-                tokens: {
-                  at: data.data.at,
-                  rt: data.data.rt,
-                },
-              }),
-            );
+              );
+              localStorage.setItem(
+                "userInfo",
+                JSON.stringify({
+                  ...JSON.parse(localStorage.getItem("userInfo")),
+                  tokens: {
+                    at: data.data.at,
+                    rt: data.data.rt,
+                  },
+                }),
+              );
+            } catch (error) {
+              if (
+                error.response.data.data.errorName === "RTInvalidError" ||
+                error.response.data.data.errorName === "ATInvalidError"
+              ) {
+                localStorage.removeItem("userInfo");
+                window.location.reload();
+              }
+            }
           }
         });
 

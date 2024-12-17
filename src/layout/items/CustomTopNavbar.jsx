@@ -7,11 +7,10 @@ const CustomTopNavbar = ({
   navbarFirstIcon,
   navbarSecondIcon,
   onSecondIconClick,
-  setBorder,
 }) => {
   return (
     <div
-      className={`custom-top-navbar ${setBorder && "border-b border-gray-700"}`}
+      className="custom-top-navbar"
     >
       <div className="custom-top-navbar--left">
         {navbarPrevPage ? (

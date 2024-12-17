@@ -2,7 +2,6 @@ import { useState, useEffect, useContext } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem } from "@capacitor/filesystem";
 import { Gallery } from "react-grid-gallery";
-import { VideoThumbnailGenerator } from "browser-video-thumbnail-generator";
 import CreateContext from "@/context/create/CreateContext";
 import {
   fetchAlbums,
@@ -184,9 +183,7 @@ const VideosGrid = ({ mediaVideos }) => {
 
   const generateVideoThumbnail = async (videoSrc) => {
     try {
-      const thumbnailInfo = await new VideoThumbnailGenerator(
-        videoSrc,
-      ).getThumbnail(5);
+      const thumbnailInfo = null
 
       return thumbnailInfo;
     } catch (error) {

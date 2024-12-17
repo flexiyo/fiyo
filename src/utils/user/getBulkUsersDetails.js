@@ -1,9 +1,9 @@
-import axios from "axios";
+import customAxios from "@/utils/customAxios.js";
 
 export const getBulkUsersDetails = async (userIds) => {
   const fiyoauthApiBaseUri = import.meta.env.VITE_FIYOAUTH_API_BASE_URI;
   try {
-    const { data: response } = await axios.post(
+    const { data: response } = await customAxios.post(
       `${fiyoauthApiBaseUri}/users/bulk`,
       {
         userIds,

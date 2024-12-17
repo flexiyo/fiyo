@@ -1,24 +1,11 @@
-import React from "react";
+import { useContext } from "react";
 import Headroom from "react-headroom";
 import { Link } from "react-router-dom";
-import matchMedia from "matchmedia";
+import AppContext from "@/context/app/AppContext";
 import logo from "@/assets/media/img/logo/flexiyo.svg";
+
 const HomeNavbar = () => {
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 600px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
+  const { isMobile } = useContext(AppContext)
   
   return (
     <Headroom>
@@ -30,8 +17,8 @@ const HomeNavbar = () => {
                 <img
                   src={logo}
                   id="logo-img"
-                  title="Flexiyo - Flex in Your Onset"
-                  alt="Flexiyo Logo"
+                  title="Flexiyo"
+                  alt="Flexiyo"
                 />
               </Link>
             </div>

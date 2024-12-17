@@ -134,26 +134,6 @@ const TrackPlayer = () => {
     };
   }, [handleTouchMove, handleTouchEnd]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    document.addEventListener("keydown", (event) => {
-      if (event.code === "ArrowRight") {
-        setAudioProgress(audioProgress + 5);
-        audio.currentTime = audio.currentTime + 5;
-      } else if (event.ctrlKey && event.code === "Space") {
-        event.preventDefault();
-        if (audio.paused) {
-          handleAudioPlay();
-        } else {
-          handleAudioPause();
-        }
-      } else if (event.code === "ArrowLeft") {
-        setAudioProgress(audioProgress - 5);
-        audio.currentTime = audio.currentTime - 5;
-      }
-    });
-  }, [handleAudioPlay, handleAudioPause]);
-
   const openDb = async () => {
     const request = indexedDB.open("MusicCacheDB", 1);
     return new Promise((resolve, reject) => {

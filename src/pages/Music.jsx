@@ -4,13 +4,15 @@ import { Menu, MenuItem } from "@mui/material";
 import axios from "axios";
 import Modal from "react-modal";
 import Headroom from "react-headroom";
-import matchMedia from "matchmedia";
 import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
 import TrackItem from "@/components/music/TrackItem";
 import TrackDeck from "@/components/music/TrackDeck";
+import AppContext from "@/context/app/AppContext";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
 import jioSaavnLogo from "@/assets/media/img/logo/jioSaavn.svg";
+import { Capacitor } from "@capacitor/core";
+import { SpeechRecognition as NativeSpeechRecognition } from "@capacitor-community/speech-recognition";
 import WebSpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -18,6 +20,7 @@ import WebSpeechRecognition, {
 Modal.setAppElement("#root");
 const Music = ({ connectedToInternet }) => {
   const {
+    audioRef,
     topTracks,
     setTopTracks,
     currentTrack,
@@ -35,13 +38,13 @@ const Music = ({ connectedToInternet }) => {
     : "Flexiyo Music";
   const location = useLocation();
 
-  const { getTrack, getTrackData, deleteCachedAudioData, handleAudioPause } =
+  const { getTrack, getTrackData, handleAudioPlay, handleAudioPause } =
     useMusicUtility();
 
   const fiyosaavnApiBaseUri = import.meta.env.VITE_FIYOSAAVN_API_BASE_URI;
 
+  const { isMobile } = useContext(AppContext);
   const [searchText, setSearchText] = useState("");
-  const [searchFieldActive, setSearchFieldActive] = useState(false);
   const [printError, setPrintError] = useState("");
   const [apiError, setApiError] = useState(false);
   const [apiLoading, setApiLoading] = useState(false);
@@ -50,23 +53,12 @@ const Music = ({ connectedToInternet }) => {
   const [modalDownloadData, setModalDownloadData] = useState("");
   const [isDownlodModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isSpeechModalOpen, setIsSpeechModalOpen] = useState(false);
+  const [speechListening, setSpeechListening] = useState(false);
+  const [speechTranscript, setSpeechTranscript] = useState("");
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = React.useState(false);
 
-  React.useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 950px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
+  const isNativePlatform = Capacitor.getPlatform() !== "web";
 
   const searchTracks = useCallback(
     async (searchTerm) => {
@@ -94,30 +86,6 @@ const Music = ({ connectedToInternet }) => {
     },
     [fiyosaavnApiBaseUri],
   );
-
-  const searchSpeechTracks = async (searchTerm) => {
-    try {
-      setApiLoading(true);
-      const { data: response } = await axios.get(
-        `${fiyosaavnApiBaseUri}/search/songs`,
-        {
-          params: {
-            query: searchTerm,
-            page: 1,
-            limit: 30,
-          },
-        },
-      );
-      setTracks(response.data.results);
-      getTrack(response.data.results[0].id);
-      setApiError(false);
-      setApiLoading(false);
-    } catch (error) {
-      setApiError(true);
-      setPrintError(`${error.code} : ${error.message}`);
-      setApiLoading(false);
-    }
-  };
 
   const openDb = async () => {
     const request = indexedDB.open("MusicCacheDB", 1);
@@ -160,13 +128,16 @@ const Music = ({ connectedToInternet }) => {
       }
       return;
     }
-
     try {
-      const { data: response } = await axios.get(
-        `${fiyosaavnApiBaseUri}/playlists?id=1134543272&limit=50`,
-      );
-
-      const tracks = response.data.songs;
+      let tracks;
+      if (topTracks.length > 0) {
+        tracks = topTracks;
+      } else {
+        const { data: response } = await axios.get(
+          `${fiyosaavnApiBaseUri}/playlists?id=1134543272&limit=40`,
+        );
+        tracks = response.data.songs.sort(() => Math.random() - 0.5);
+      }
       setTopTracks(tracks);
       setTracks(tracks);
     } catch (error) {
@@ -289,11 +260,26 @@ const Music = ({ connectedToInternet }) => {
     fetchData();
   }, []);
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchText(value);
+  useEffect(() => {
+    const audio = audioRef.current;
+    document.addEventListener("keydown", (event) => {
+      if (event.target.tagName === "INPUT") return;
 
-    if (value) {
+      event.preventDefault();
+      if (event.code === "Space") {
+        if (audio.paused) {
+          handleAudioPlay();
+        } else {
+          handleAudioPause();
+        }
+      }
+    });
+  }, [handleAudioPlay, handleAudioPause]);
+
+  const handleSearchChange = (event) => {
+    const value = event.target.value;
+    setSearchText(value);
+    if (value.trim() !== "") {
       searchTracks(value);
     } else {
       getTopTracks();
@@ -332,6 +318,9 @@ const Music = ({ connectedToInternet }) => {
     setIsDownloadModalOpen(false);
   };
 
+  const { transcript, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
+
   const openSpeechModal = () => {
     setIsSpeechModalOpen(true);
     startSpeechRecognition();
@@ -343,35 +332,56 @@ const Music = ({ connectedToInternet }) => {
     stopSpeechRecognition();
   }, []);
 
-  const startSpeechRecognition = () => {
-    WebSpeechRecognition.startListening();
+  useEffect(() => {
+    if (transcript) {
+      setSpeechTranscript(transcript);
+    }
+  }, [transcript]);
+
+  const startSpeechRecognition = async () => {
+    setSpeechListening(true);
+    if (!browserSupportsSpeechRecognition) setSpeechListening(false);
+    if (isNativePlatform) {
+      try {
+        const hasPermission = await NativeSpeechRecognition.checkPermissions();
+        if (!hasPermission) {
+          await NativeSpeechRecognition.requestPermissions();
+        }
+
+        await NativeSpeechRecognition.start({
+          language: "en-IN",
+          partialResults: true,
+        });
+      } catch (error) {
+        console.error("Error starting native speech recognition:", error);
+      }
+    } else {
+      try {
+        WebSpeechRecognition.startListening({
+          language: "en-IN",
+        });
+        setSpeechListening(true);
+      } catch (error) {
+        console.error("Error starting web speech recognition:", error);
+      }
+    }
     setTimeout(() => {
       closeSpeechModal();
     }, 10000);
   };
 
-  const stopSpeechRecognition = () => {
-    WebSpeechRecognition.stopListening();
+  const stopSpeechRecognition = async () => {
+    try {
+      setSpeechListening(false)
+      if (isNativePlatform) {
+        await NativeSpeechRecognition.stop();
+      } else {
+        await WebSpeechRecognition.stopListening();
+      }
+    } catch (error) {
+      console.error("Error stopping speech recognition:", error);
+    }
   };
-
-  // Native Speech Recognition
-
-  // Web Speech Recognition
-  const { listening: speechListening, transcript: speechTranscript } =
-    useSpeechRecognition({
-      commands: [
-        {
-          command: "play",
-          callback: () => {
-            closeSpeechModal();
-          },
-        },
-        {
-          command: "play *",
-          callback: (speechSearchTerm) => playOnSpeechCommand(speechSearchTerm),
-        },
-      ],
-    });
 
   const speechModalWaves = document.querySelectorAll(
     ".speechWaveBox1, .speechWaveBox2, .speechWaveBox3, .speechWaveBox4, .speechWaveBox5",
@@ -387,13 +397,10 @@ const Music = ({ connectedToInternet }) => {
   }
 
   useEffect(() => {
-    if (
-      !speechListening &&
-      speechTranscript &&
-      !speechTranscript.toLowerCase().startsWith("play")
-    ) {
+    if (!speechListening && speechTranscript) {
       searchTracks(speechTranscript);
       setSearchText(speechTranscript);
+      setSpeechTranscript("");
       const searchTts = new Audio(
         `https://www.google.com/speech-api/v1/synthesize?text=${encodeURIComponent(
           speechTranscript,
@@ -403,17 +410,6 @@ const Music = ({ connectedToInternet }) => {
       closeSpeechModal();
     }
   }, [speechListening, speechTranscript, closeSpeechModal, searchTracks]);
-
-  const playOnSpeechCommand = (speechSearchTerm) => {
-    if (speechSearchTerm) {
-      searchSpeechTracks(speechSearchTerm);
-      setSearchText(speechSearchTerm);
-      closeSpeechModal();
-      setTimeout(() => {
-        stopSpeechRecognition();
-      }, 1000);
-    }
-  };
 
   const customModalStyles = {
     content: {
@@ -473,83 +469,29 @@ const Music = ({ connectedToInternet }) => {
               navbarTitle="Music"
               navbarFirstIcon="fa fa-list-music"
               navbarSecondIcon="fa fa-gear"
-              setBorder
             />
           </Headroom>
         ) : null}
-        <div className="search-container">
-          <div className="search-box">
-            <div
-              className="search-bar"
-              style={{
-                border: `${
-                  searchFieldActive
-                    ? ".1rem solid var(--fm-primary-text"
-                    : ".1rem solid var(--fm-secondary-bg-color)"
-                }`,
-              }}
-            >
+        <div className="flex justify-center items-center">
+          <div className="flex items-center w-full bg-gray-900 rounded-lg px-3 py-2 my-3 mx-3">
+            <input
+              type="text"
+              placeholder="Search for tracks..."
+              value={searchText}
+              onChange={handleSearchChange}
+              className="flex-grow bg-transparent outline-none text-gray-100 placeholder-gray-500"
+            />
+            <button>
               <i
-                className="far fa-search search-magnify-icon"
-                style={{
-                  color: `${
-                    searchFieldActive
-                      ? "var(--fm-primary-text)"
-                      : "var(--fm-primary-text-muted)"
-                  }`,
-                }}
-              ></i>
-              <input
-                type="text"
-                className="search-input-field"
-                placeholder="Search Tracks..."
-                onChange={handleSearchChange}
-                value={searchText}
-                onFocus={() => setSearchFieldActive(true)}
-                onBlur={() => setSearchFieldActive(false)}
-              />
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                right: "0",
-                borderRadius: "0",
-                height: "2.7rem",
-              }}
-            >
-              <i
-                className="fm-primary-btn fa fa-microphone"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "0 1.1rem",
-                  height: "100%",
-                }}
+                className="text-gray-200 mx-3 py-1 px-2 rounded fa fa-microphone hover:bg-slate-700"
                 onClick={openSpeechModal}
               ></i>
-              <button
-                className="fm-primary-btn"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "0 1rem",
-                  height: "100%",
-                  borderLeft: ".1rem solid var(--fm-secondary-bg-color)",
-                }}
-                onClick={(event) => {
-                  event.preventDefault();
-                  setSearchText("");
-                }}
-              >
-                <i
-                  className={`${
-                    apiLoading ? "fa fa-spinner fa-spin" : "fa fa-x"
-                  }`}
-                ></i>
-              </button>
-            </div>
+            </button>
+            <i
+              className={`text-gray-500 ${
+                apiLoading ? "fa fa-ellipsis" : "fa fa-search"
+              }`}
+            ></i>
           </div>
         </div>
         <div
@@ -559,13 +501,6 @@ const Music = ({ connectedToInternet }) => {
         >
           {printError}
         </div>
-        <button
-          className="fm-primary-btn"
-          style={{ padding: ".5rem", marginLeft: "1rem" }}
-          onClick={deleteCachedAudioData}
-        >
-          Clear Cached Data
-        </button>
         <div className="render-tracks">{renderTracks()}</div>
         <Modal
           isOpen={isDownlodModalOpen}
@@ -652,10 +587,12 @@ const Music = ({ connectedToInternet }) => {
               fontSize: "1.3rem",
             }}
           >
-            {!speechTranscript && !speechListening
+            {!browserSupportsSpeechRecognition
+              ? "Your browser doesn't support this feature."
+              : !speechTranscript && !speechListening
               ? "Didn't Catch, Speak again"
               : !speechTranscript
-              ? `Play "${topTracks[0] && topTracks[0].name}"`
+              ? `Say "${topTracks[0] && topTracks[0].name}"`
               : speechTranscript}
             <br />
             <br />

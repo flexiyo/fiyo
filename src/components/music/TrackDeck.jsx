@@ -1,16 +1,11 @@
 import { useContext, useEffect, useState, useCallback, useRef } from "react";
-import matchMedia from "matchmedia";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import AppContext from "@/context/app/AppContext";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
 const TrackDeck = () => {
-  const {
-    getTrack,
-    getTrackLyrics,
-    handleAudioPlay,
-    handleAudioPause,
-    handleNextAudioTrack,
-  } = useMusicUtility();
+  const { getTrack, handleAudioPlay, handleAudioPause, handleNextAudioTrack } =
+    useMusicUtility();
   const {
     currentTrack,
     audioRef,
@@ -24,24 +19,10 @@ const TrackDeck = () => {
 
   const lyricsWrapperRef = useRef(null);
 
+  const { isMobile } = useContext(AppContext);
   const [isDragging, setIsDragging] = useState(false);
   const [touchStartPosition, setTouchStartPosition] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const [isLyricsCopied, setIsLyricsCopied] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 950px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
 
   const handleCopyLyrics = () => {
     navigator.clipboard
@@ -57,20 +38,7 @@ const TrackDeck = () => {
   useEffect(() => {
     const getTrackLyricsLocally = async () => {
       const lyricsWrapper = lyricsWrapperRef.current;
-      let lyrics;
-
-      if (currentTrack.id !== lyricsWrapper.trackid) {
-        const lyricsMetadata = await getTrackLyrics();
-        lyricsWrapper.trackid = lyricsMetadata.trackid;
-
-        if (lyrics === null) {
-          lyricsWrapper.innerHTML = `<div style="display: flex; height: 90%; justify-content: center; align-items: center;">Couldn't load lyrics for this song.</div>`;
-        } else if (lyrics === "loading") {
-          lyricsWrapper.innerHTML = `<div style="display: flex; height: 90%; justify-content: center; align-items: center;">Loading...</div>`;
-        } else {
-          lyricsWrapper.innerHTML = lyricsMetadata.lyrics;
-        }
-      }
+      lyricsWrapper.innerHTML = currentTrack.lyrics ? currentTrack.lyrics?.replace(/<br>/g, "<br/>") : "Couldn't load lyrics for this song.";
     };
     getTrackLyricsLocally();
   }, [currentTrack]);

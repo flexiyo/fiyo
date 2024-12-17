@@ -1,26 +1,12 @@
-import React from "react";
-import matchMedia from "matchmedia";
+import { useContext } from "react";
 import Headroom from "react-headroom";
 import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
+import AppContext from "@/context/app/AppContext"
 
 const Stories = () => {
   document.title = "Stories • Flexiyo";
 
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 600px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
+  const { isMobile } = useContext(AppContext);
 
   const storiesList = [
     {
@@ -99,7 +85,6 @@ const Stories = () => {
             navbarTitle="Stories"
             navbarFirstIcon="fa fa-plus"
             navbarSecondIcon="fa fa-gear"
-            setBorder
           />
         </Headroom>
       ) : null}

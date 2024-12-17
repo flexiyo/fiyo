@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Modal, Avatar, Box, Button } from "@mui/material";
-import axios from "axios";
-import matchMedia from "matchmedia";
+import customAxios from "@/utils/customAxios.js";
+import AppContext from "@/context/app/AppContext";
 import SocketContext from "@/context/socket/SocketContext";
 import UserContext from "@/context/user/UserContext";
 import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
@@ -10,6 +10,7 @@ import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
 const InboxList = () => {
   const navigate = useNavigate();
 
+  const { isMobile } = useContext(AppContext);
   const { socket, inboxItems } = useContext(SocketContext);
   const { userInfo } = useContext(UserContext);
   const [usersList, setUsersList] = useState([]);
@@ -18,26 +19,10 @@ const InboxList = () => {
   const fiyoauthApiBaseUri = import.meta.env.VITE_FIYOAUTH_API_BASE_URI;
   const fiyochatSrvBaseUri = import.meta.env.VITE_FIYOCHAT_SRV_BASE_URI;
 
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 950px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
-
   const getUsersListForNewChatRoom = async () => {
     setIsUsersListModalOpen(true);
     try {
-      const { data } = await axios.get(`${fiyoauthApiBaseUri}/users`, {
+      const { data } = await customAxios.get(`${fiyoauthApiBaseUri}/users`, {
         headers: {
           fiyoat: JSON.parse(localStorage.getItem("userInfo")).tokens.at,
         },
@@ -51,7 +36,7 @@ const InboxList = () => {
 
   const createChatRoom = async (memberIds) => {
     try {
-      const { data } = await axios.post(
+      const { data } = await customAxios.post(
         `${fiyochatSrvBaseUri}/api/v1/rooms/create`,
         {
           roomType: "private",
@@ -73,7 +58,7 @@ const InboxList = () => {
 
   const deleteChatRoom = async (collectionName) => {
     try {
-      await axios.delete(`${fiyochatSrvBaseUri}/api/v1/rooms/delete`, {
+      await customAxios.delete(`${fiyochatSrvBaseUri}/api/v1/rooms/delete`, {
         headers: {
           fiyoat: JSON.parse(localStorage.getItem("userInfo")).tokens.at,
         },

@@ -5,6 +5,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
 import InboxList from "@/components/direct/InboxList";
 import UserFilesSheet from "@/components/direct/chat/UserFilesSheet";
+import AppContext from "@/context/app/AppContext"
 import UserContext from "@/context/user/UserContext";
 import SocketContext from "@/context/socket/SocketContext";
 import {
@@ -20,6 +21,7 @@ const Chat = () => {
   const chatDivRef = useRef(null);
   const inputMessageRef = useRef(null);
 
+  const { isMobile } = useContext(AppContext);
   const { socket, inboxItems, setInboxItems } = useContext(SocketContext);
   const { userInfo } = useContext(UserContext);
   const [roomDetails, setRoomDetails] = useState(null);
@@ -29,20 +31,6 @@ const Chat = () => {
   const [skipCount, setSkipCount] = useState(1);
   const [isUserFilesSheetOpen, setIsUserFilesSheetOpen] = useState(false);
   const { roomId } = useParams();
-
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 950px)");
-    const handleMediaQueryChange = (e) => setIsMobile(e.matches);
-    mediaQuery.addEventListener("change", handleMediaQueryChange);
-    setIsMobile(mediaQuery.matches);
-
-    return () =>
-      mediaQuery.removeEventListener("change", handleMediaQueryChange);
-  }, []);
-
-  const navigate = new useNavigate();
 
   useEffect(() => {
     document.title = `Chats • Flexiyo`;
@@ -231,7 +219,6 @@ const Chat = () => {
           }
           navbarFirstIcon="fa fa-phone"
           navbarSecondIcon="fa fa-video"
-          setBorder
         />
         <div
           ref={chatDivRef}

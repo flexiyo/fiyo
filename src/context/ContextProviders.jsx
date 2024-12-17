@@ -1,5 +1,6 @@
 import React from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { AppProvider } from "./app/AppContext";
 import { UserProvider } from "./user/UserContext";
 import { SocketProvider } from "./socket/SocketContext";
 import { MusicProvider } from "./music/MusicContext";
@@ -13,13 +14,15 @@ const ContextProviders = ({ children }) => {
   });
   return (
     <ThemeProvider theme={darkTheme}>
-      <UserProvider>
-        <SocketProvider>
-          <MusicProvider>
-            <CreateProvider>{children}</CreateProvider>
-          </MusicProvider>
-        </SocketProvider>
-      </UserProvider>
+      <AppProvider>
+        <UserProvider>
+          <SocketProvider>
+            <MusicProvider>
+              <CreateProvider>{children}</CreateProvider>
+            </MusicProvider>
+          </SocketProvider>
+        </UserProvider>
+      </AppProvider>
     </ThemeProvider>
   );
 };

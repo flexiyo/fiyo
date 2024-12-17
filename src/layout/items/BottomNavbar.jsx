@@ -5,7 +5,6 @@ import { NavLink, useLocation } from "react-router-dom";
 export default function BottomNavbar() {
   const { userInfo } = useContext(UserContext);
   const withoutBottomNavbarRoutes = ["/inbox", "/direct/t/"];
-  // All the routes you want to exclude
   const { pathname } = useLocation();
 
   if (withoutBottomNavbarRoutes.some((item) => pathname.includes(item))) {
@@ -130,7 +129,7 @@ export default function BottomNavbar() {
           >
             <div className="user-profile-icon">
               <img
-                alt="User Profile"
+                alt="User"
                 className="user-profile-icon"
                 src={userInfo.avatar}
               />

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="FLexiyo">
+      <SelectionState runConfigName="Flexiyo">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

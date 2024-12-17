@@ -1,18 +1,19 @@
 import { useState, useEffect, useContext } from "react";
-import axios from "axios";
+import customAxios from "@/utils/customAxios.js";
 import { Alert, Container, Typography, TextField, Button } from "@mui/material";
 import TypewriterComponent from "typewriter-effect";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import AppContext from "@/context/app/AppContext";
 import UserContext from "@/context/user/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/media/img/logo/flexiyo.svg";
 
 const Login = () => {
+  const { isMobile } = useContext(AppContext);
   const { isUserAuthenticated, setIsUserAuthenticated, setUserInfo } =
     useContext(UserContext);
-  const [isMobile, setIsMobile] = useState(false);
   const [alertText, setAlertText] = useState("");
   const [isForgotPasswordClicked, setIsForgotPasswordClicked] = useState(false);
   const [isLoginUserAccountReqLoading, setIsLoginUserAccountReqLoading] =
@@ -24,20 +25,6 @@ const Login = () => {
     username: Yup.string().required("Email or Username is required"),
     password: Yup.string().required("Password is required"),
   });
-
-  useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 600px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -60,7 +47,7 @@ const Login = () => {
   const handleLoginUser = async (values) => {
     setIsLoginUserAccountReqLoading(true);
     try {
-      const response = await axios.post(
+      const response = await customAxios.post(
         `${fiyoauthApiBaseUri}/users/login`,
         {
           username: values.username,
@@ -252,6 +239,12 @@ const Login = () => {
           >
             Sign Up
           </Link>
+          <p
+            className="text-blue-500 underline mt-3"
+            onClick={() => navigate("/music")}
+          >
+            Enjoy music instead
+          </p>
         </Container>
       </div>
     </section>

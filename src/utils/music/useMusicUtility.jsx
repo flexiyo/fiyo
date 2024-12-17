@@ -1,23 +1,8 @@
 import { useContext, useEffect, useCallback } from "react";
 import axios from "axios";
+import { openDB } from "idb";
 import MusicContext from "@/context/music/MusicContext";
-
-const openDb = async () => {
-  const request = indexedDB.open("MusicCacheDB", 1);
-
-  request.onupgradeneeded = (event) => {
-    const db = event.target.result;
-    if (!db.objectStoreNames.contains("tracks")) {
-      const store = db.createObjectStore("tracks", { keyPath: "id" });
-      store.createIndex("by_track_id", "id");
-    }
-  };
-
-  return new Promise((resolve, reject) => {
-    request.onsuccess = (event) => resolve(event.target.result);
-    request.onerror = (event) => reject(event.target.error);
-  });
-};
+import { MediaSession } from "@jofr/capacitor-media-session";
 
 const useMusicUtility = () => {
   const {
@@ -34,29 +19,24 @@ const useMusicUtility = () => {
 
   const fiyosaavnApiBaseUri = import.meta.env.VITE_FIYOSAAVN_API_BASE_URI;
 
+  const openMusicCacheDb = async () => {
+    return openDB("MusicCacheDB", 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains("tracks")) {
+          const store = db.createObjectStore("tracks", { keyPath: "id" });
+          store.createIndex("by_track_id", "id");
+        }
+      },
+    });
+  };
+
   const getTrackData = async (trackId) => {
     try {
-      const db = await openDb();
-      const tx = db.transaction("tracks", "readonly");
-      const store = tx.objectStore("tracks");
-
-      const cachedTrackData = await new Promise((resolve, reject) => {
-        const request = store.get(trackId);
-        request.onsuccess = (event) => resolve(event.target.result);
-        request.onerror = (event) => reject(event.target.error);
-      });
+      const db = await openMusicCacheDb();
+      const cachedTrackData = await db.get("tracks", trackId);
 
       if (cachedTrackData) {
-        return {
-          id: cachedTrackData.id,
-          name: cachedTrackData.name,
-          album: cachedTrackData.album,
-          artists: cachedTrackData.artists,
-          image: cachedTrackData.image,
-          link: cachedTrackData.link,
-          audioBlob: cachedTrackData.audioBlob,
-          hasLyrics: cachedTrackData.hasLyrics,
-        };
+        return cachedTrackData;
       } else {
         const { data } = await axios.get(
           `${fiyosaavnApiBaseUri}/songs/${trackId}`,
@@ -86,13 +66,10 @@ const useMusicUtility = () => {
               : contentQuality === "high"
               ? resultData.downloadUrl[4].url
               : resultData.downloadUrl[3].url,
-          hasLyrics: resultData.hasLyrics,
+          lyrics: null,
         };
 
-        const txWrite = db.transaction("tracks", "readwrite");
-        const storeWrite = txWrite.objectStore("tracks");
-        storeWrite.put(trackData);
-
+        await db.put("tracks", trackData);
         return trackData;
       }
     } catch (error) {
@@ -103,15 +80,9 @@ const useMusicUtility = () => {
 
   const getTrack = async (trackId) => {
     setIsAudioLoading(true);
-    const db = await openDb();
+    const db = await openMusicCacheDb();
 
-    const tx = db.transaction("tracks", "readonly");
-    const store = tx.objectStore("tracks");
-    const cachedTrackData = await new Promise((resolve, reject) => {
-      const request = store.get(trackId);
-      request.onsuccess = (event) => resolve(event.target.result);
-      request.onerror = (event) => reject(event.target.error);
-    });
+    const cachedTrackData = await db.get("tracks", trackId);
 
     if (cachedTrackData) {
       setCurrentTrack({
@@ -121,12 +92,13 @@ const useMusicUtility = () => {
         artists: cachedTrackData.artists,
         image: cachedTrackData.image,
         link: cachedTrackData.audioBlob || cachedTrackData.link,
-        hasLyrics: cachedTrackData.hasLyrics,
+        lyrics: cachedTrackData.lyrics,
       });
       setIsAudioLoading(false);
       setPreviouslyPlayedTracks((prevTracks) => [...prevTracks, trackId]);
     } else {
       const trackData = await getTrackData(trackId);
+      trackData.lyrics = await getTrackLyrics(trackData);
       setCurrentTrack(trackData);
       cacheTrackData(trackData);
       setIsAudioLoading(false);
@@ -134,62 +106,73 @@ const useMusicUtility = () => {
     }
   };
 
-  const getTrackLyrics = async () => {
-    let currentTrackLyrics;
-    if (currentTrack.hasLyrics) {
-      const { data } = await axios.get(
-        `${fiyosaavnApiBaseUri}/songs/${currentTrack.id}/lyrics`,
-      );
-      return {
-        trackId: currentTrack.id,
-        lyrics: data.data.lyrics.replace("<br>", "<br/>"),
-      };
-    } else {
+  const getTrackLyrics = async (trackData) => {
+    try {
+      let data;
       try {
-        const { data } = await axios.get(
-          `https://lyrist.vercel.app/api/${
-            currentTrack.name
-          }/${currentTrack.artists.split(",")[0].trim()}`,
+        const lyristResponse = await axios.get(
+          `https://lyrist.vercel.app/api/${trackData.name}/${trackData.artists
+            ?.split(",")[0]
+            .trim()}`,
         );
-        if (data.lyrics) {
-          return {
-            trackId: currentTrack.id,
-            lyrics: data.lyrics,
-          };
-        } else return null;
+
+        if (lyristResponse && lyristResponse.data.lyrics) {
+          data = lyristResponse.data;
+        } else {
+          const saavnResponse = await axios.get(
+            `${fiyosaavnApiBaseUri}/songs/${trackData.id}/lyrics`,
+          );
+          data = saavnResponse.data.data;
+        }
       } catch (error) {
-        console.error(error);
-        return null;
+        if (error.code === "ERR_NETWORK") {
+          const saavnResponse = await axios.get(
+            `${fiyosaavnApiBaseUri}/songs/${trackData.id}/lyrics`,
+          );
+          data = saavnResponse.data.data;
+        } else {
+          throw new Error(`Error in getTrackLyrics: ${error}`);
+        }
       }
+
+      setCurrentTrack((prevTrack) => ({
+        ...prevTrack,
+        lyrics: data.lyrics || null,
+      }));
+
+      return data.lyrics || null;
+    } catch (error) {
+      setCurrentTrack((prevTrack) => ({
+        ...prevTrack,
+        lyrics: null,
+      }));
+      throw new Error(`Error in getTrackLyrics: ${error}`);
     }
   };
 
   const cacheTrackData = async (trackData) => {
-    const db = await openDb();
-    const tx = db.transaction("tracks", "readwrite");
-    const store = tx.objectStore("tracks");
-
-    store.put({
-      id: trackData.id,
-      name: trackData.name,
-      album: trackData.album,
-      artists: trackData.artists,
-      image: trackData.image,
-      link: trackData.link,
-      hasLyrics: trackData.hasLyrics,
-      audioBlob: null,
-    });
+    try {
+      const db = await openMusicCacheDb();
+      await db.put("tracks", {
+        id: trackData.id,
+        name: trackData.name,
+        album: trackData.album,
+        artists: trackData.artists,
+        image: trackData.image,
+        link: trackData.link,
+        lyrics: trackData.lyrics,
+        audioBlob: null,
+      });
+    } catch (error) {
+      console.error("Error in cacheTrackData:", error);
+    }
   };
 
   const deleteCachedAudioData = async () => {
     try {
-      const db = await openDb();
-      const tx = db.transaction("tracks", "readwrite");
-      const store = tx.objectStore("tracks");
-      store.clear();
-      tx.oncomplete = () => {
-        alert("All Cached Audio Data deleted successfully");
-      };
+      const db = await openMusicCacheDb();
+      await db.clear("tracks");
+      alert("All Cached Audio Data deleted successfully");
     } catch (e) {
       console.error("Unable to delete Cached Audio Data", e);
     }
@@ -212,14 +195,13 @@ const useMusicUtility = () => {
       const audio = audioRef.current;
 
       try {
-        let trackIdToFetch = await getSuggestedTrackId();
-
         if (loopAudio && callType === "auto") {
           audio.currentTime = 0;
           audio.play();
           setIsAudioPlaying(true);
           await getTrack(currentTrack.id);
         } else if ((!loopAudio && callType === "auto") || callType !== "auto") {
+          const trackIdToFetch = await getSuggestedTrackId();
           audio.currentTime = 0;
           audio.pause();
           setIsAudioPlaying(false);
@@ -233,58 +215,110 @@ const useMusicUtility = () => {
   );
 
   const getSuggestedTrackId = async () => {
-    const { data } = await axios.get(
-      `${fiyosaavnApiBaseUri}/songs/${currentTrack.id}/suggestions`,
-      { params: { limit: 10 } },
-    );
+    try {
+      if (!navigator.onLine) {
+        const db = await openMusicCacheDb();
+        const cachedTracks = await db.getAll("tracks");
 
-    let suggestedTrackId;
-    do {
-      suggestedTrackId = data.data[Math.floor(Math.random() * 10)].id;
-    } while (previouslyPlayedTracks.includes(suggestedTrackId));
+        if (cachedTracks.length === 0) {
+          throw new Error("No cached tracks available");
+        }
 
-    return suggestedTrackId;
+        return cachedTracks[Math.floor(Math.random() * cachedTracks.length)].id;
+      }
+
+      const { data } = await axios.get(
+        `${fiyosaavnApiBaseUri}/songs/${currentTrack.id}/suggestions`,
+        { params: { limit: 10 } },
+      );
+
+      let suggestedTrackId;
+      do {
+        suggestedTrackId = data.data[Math.floor(Math.random() * 10)].id;
+      } while (previouslyPlayedTracks.includes(suggestedTrackId));
+
+      return suggestedTrackId;
+    } catch (error) {
+      throw new Error(`Error in getSuggestedTrackId: ${error}`);
+    }
   };
 
   useEffect(() => {
     const audio = audioRef.current;
-
-    if (currentTrack.id) {
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.metadata = new window.MediaMetadata({
-          title: currentTrack.name,
-          artist: currentTrack.artists,
-          album: currentTrack.album,
-          artwork: [
-            {
-              src: currentTrack.image.replace(/(50x50|150x150)/, "500x500"),
-              sizes: "500x500",
-              type: "image/jpg",
-            },
-          ],
+  
+    if (currentTrack.id && audio) {
+      const artworkUrl = currentTrack.image.replace(/(50x50|150x150)/, "500x500");
+  
+      const updatePositionState = () => {
+        MediaSession.setPositionState({
+          position: audio.currentTime,
+          duration: audio.duration,
+          playbackRate: audio.playbackRate,
         });
+      };
+  
+      const updatePlaybackState = () => {
+        const playbackState = audio.paused ? "paused" : "playing";
+        MediaSession.setPlaybackState(playbackState);
+      };
 
-        navigator.mediaSession.setActionHandler("play", handleAudioPlay);
+      MediaSession.setMetadata({
+        title: currentTrack.name,
+        artist: currentTrack.artists,
+        album: currentTrack.album,
+        artwork: [
+          {
+            src: artworkUrl,
+            sizes: "500x500",
+            type: "image/jpg",
+          },
+        ],
+      });
 
-        navigator.mediaSession.setActionHandler("pause", handleAudioPause);
+      audio.addEventListener("durationchange", updatePositionState);
+      audio.addEventListener("seeked", updatePositionState);
+      audio.addEventListener("ratechange", updatePositionState);
+      audio.addEventListener("play", updatePositionState);
+      audio.addEventListener("pause", updatePositionState);
 
-        navigator.mediaSession.setActionHandler(
-          "nexttrack",
-          handleNextAudioTrack,
-        );
+      audio.addEventListener("play", updatePlaybackState);
+      audio.addEventListener("pause", updatePlaybackState);
 
-        navigator.mediaSession.setActionHandler("stop", () => {
-          audio.pause();
-          setIsAudioPlaying(false);
-        });
-      }
+      MediaSession.setActionHandler({ action: "play" }, async () => {
+        await audio.play();
+        handleAudioPlay();
+      });
+  
+      MediaSession.setActionHandler({ action: "pause" }, () => {
+        audio.pause();
+        handleAudioPause();
+      });
+  
+      MediaSession.setActionHandler({ action: "seekto" }, (details) => {
+        if (details.seekTime !== undefined) {
+          audio.currentTime = details.seekTime;
+          updatePositionState();
+        }
+      });
+  
+      MediaSession.setActionHandler({ action: "nexttrack" }, () => {
+        handleNextAudioTrack("manual");
+      });
+      
+      return () => {
+        audio.removeEventListener("durationchange", updatePositionState);
+        audio.removeEventListener("seeked", updatePositionState);
+        audio.removeEventListener("ratechange", updatePositionState);
+        audio.removeEventListener("play", updatePositionState);
+        audio.removeEventListener("pause", updatePlaybackState);
+      };
     }
-  }, [currentTrack, handleAudioPlay, handleAudioPause, handleNextAudioTrack]);
+  }, [currentTrack, audioRef]);  
 
   return {
+    openMusicCacheDb,
     getTrackData,
     getTrack,
-    getTrackLyrics,
     deleteCachedAudioData,
     handleAudioPlay,
     handleAudioPause,

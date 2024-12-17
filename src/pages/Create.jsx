@@ -1,25 +1,12 @@
-import React from "react";
-import matchMedia from "matchmedia";
+import { useContext } from "react";
 import ContentViewport from "@/components/create/ContentViewport";
 import ContentSelection from "@/components/create/ContentSelection";
+import AppContext from "@/context/app/AppContext";
+
 const Create = () => {
   document.title = "Flexiyo";
 
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    const mediaQuery = matchMedia("(max-width: 950px)");
-    const handleMediaQueryChange = () => {
-      setIsMobile(mediaQuery.matches);
-    };
-
-    mediaQuery.addListener(handleMediaQueryChange);
-    handleMediaQueryChange();
-
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
+  const { isMobile } = useContext(AppContext);
 
   return (
     <section id="create">
@@ -27,7 +14,6 @@ const Create = () => {
         className="create-container"
         style={{ flexDirection: isMobile ? "column" : "row" }}
       >
-        
         <ContentViewport />
         <ContentSelection />
       </div>
