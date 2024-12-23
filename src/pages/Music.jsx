@@ -169,15 +169,12 @@ const Music = ({ connectedToInternet }) => {
 
   const playTrack = async (trackId) => {
     if (isAudioPlaying) return;
-    setIsAudioLoading(true);
     try {
       await getTrack(trackId);
       setIsAudioPlaying(true);
     } catch (error) {
       console.error("Error playing track:", error);
       setIsAudioPlaying(false);
-    } finally {
-      setIsAudioLoading(false);
     }
   };
 

@@ -134,81 +134,26 @@ const TrackPlayer = () => {
     };
   }, [handleTouchMove, handleTouchEnd]);
 
-  const openDb = async () => {
-    const request = indexedDB.open("MusicCacheDB", 1);
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = (e) => reject(e);
-      request.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains("tracks")) {
-          db.createObjectStore("tracks", { keyPath: "id" });
-        }
-      };
-    });
-  };
-
   useEffect(() => {
-    const playAudio = async () => {
-      setIsAudioLoading(true);
-      if (currentTrack.link) {
-        try {
-          const db = await openDb();
-          const tx = db.transaction("tracks", "readonly");
-          const store = tx.objectStore("tracks");
-          const cachedTrackData = await new Promise((resolve, reject) => {
-            const request = store.get(currentTrack.id);
-            request.onsuccess = (event) => resolve(event.target.result);
-            request.onerror = (event) => reject(event.target.error);
-          });
-
-          const audio = audioRef.current;
-
-          if (cachedTrackData && cachedTrackData.audioBlob) {
-            const blobURL = URL.createObjectURL(cachedTrackData.audioBlob);
-            audio.src = blobURL;
-          } else {
-            const audioBlobResponse = await fetch(currentTrack.link);
-            const audioBlob = await audioBlobResponse.blob();
-
-            const blobURL = URL.createObjectURL(audioBlob);
-
-            audio.src = blobURL;
-
-            const txWrite = db.transaction("tracks", "readwrite");
-            const storeWrite = txWrite.objectStore("tracks");
-
-            if (cachedTrackData) {
-              cachedTrackData.audioBlob = audioBlob;
-
-              storeWrite.put(cachedTrackData);
-            } else {
-              const updatedTrackData = {
-                id: currentTrack.id,
-                name: currentTrack.name,
-                album: currentTrack.album,
-                artists: currentTrack.artists,
-                link: currentTrack.link,
-                audioBlob,
-                hasLyrics: currentTrack.hasLyrics,
-              };
-              storeWrite.put(updatedTrackData);
+        const playAudio = async () => {
+            setIsAudioLoading(true);
+  
+            if (currentTrack.link) {
+              try {
+              const audio = audioRef.current;
+              audio.src = currentTrack.link; // Use direct link 
+              await audio.play();
+              setIsAudioPlaying(true);
+              setIsAudioLoading(false);
+            } catch (error) {
+                  console.error("Error playing audio:", error);
+                  setIsAudioPlaying(false);
+                  setIsAudioLoading(false);
             }
           }
-
-          await audio.play();
-          setIsAudioPlaying(true);
-          setIsAudioLoading(false);
-        } catch (error) {
-          console.error("Error playing audio:", error);
-          setIsAudioPlaying(false);
-          setIsAudioLoading(false);
-        }
-      }
-    };
-
-    playAudio();
-  }, [currentTrack.link, currentTrack.id]);
+        };
+      playAudio();
+  },[currentTrack.link,currentTrack.id]);
 
   return currentTrack.id ? (
     <div className="track-player">
@@ -294,9 +239,9 @@ const TrackPlayer = () => {
                 ref={playAudioBtnRef}
                 onClick={() => {
                   handleAudioPlay();
-                  if (!currentTrack.link) {
-                    getTrack(currentTrack.id);
-                  }
+                    if (!currentTrack.link) {
+                      getTrack(currentTrack.id);
+                    }
                 }}
               >
                 <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>

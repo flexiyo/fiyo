@@ -3,6 +3,9 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import AppContext from "@/context/app/AppContext";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
+import { openDB } from "idb";
+import axios from "axios";
+
 const TrackDeck = () => {
   const { getTrack, handleAudioPlay, handleAudioPause, handleNextAudioTrack } =
     useMusicUtility();
@@ -15,14 +18,26 @@ const TrackDeck = () => {
     isAudioLoading,
     audioProgress,
     setAudioProgress,
+    setCurrentTrack,
   } = useContext(MusicContext);
 
   const lyricsWrapperRef = useRef(null);
-
   const { isMobile } = useContext(AppContext);
   const [isDragging, setIsDragging] = useState(false);
   const [touchStartPosition, setTouchStartPosition] = useState(0);
   const [isLyricsCopied, setIsLyricsCopied] = useState(false);
+  const fiyosaavnApiBaseUri = import.meta.env.VITE_FIYOSAAVN_API_BASE_URI;
+
+  const openMusicCacheDb = async () => {
+    return openDB("MusicCacheDB", 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains("tracks")) {
+          const store = db.createObjectStore("tracks", { keyPath: "id" });
+          store.createIndex("by_track_id", "id");
+        }
+      },
+    });
+  };
 
   const handleCopyLyrics = () => {
     navigator.clipboard
@@ -35,12 +50,102 @@ const TrackDeck = () => {
       });
   };
 
+  const getTrackLyrics = async (trackData) => {
+    try {
+      let data;
+      try {
+        const lyristResponse = await axios.get(
+          `https://lyrist.vercel.app/api/${trackData.name}/${trackData.artists
+            ?.split(",")[0]
+            .trim()}`,
+        );
+
+        if (lyristResponse && lyristResponse.data.lyrics) {
+          data = lyristResponse.data;
+        } else {
+          const saavnResponse = await axios.get(
+            `${fiyosaavnApiBaseUri}/songs/${trackData.id}/lyrics`,
+          );
+          data = saavnResponse.data.data;
+        }
+      } catch (error) {
+        if (error.code === "ERR_NETWORK") {
+          const saavnResponse = await axios.get(
+            `${fiyosaavnApiBaseUri}/songs/${trackData.id}/lyrics`,
+          );
+          data = saavnResponse.data.data;
+        } else {
+          throw new Error(`Error in getTrackLyrics: ${error}`);
+        }
+      }
+
+      return data.lyrics || null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const cacheTrackData = async (trackData) => {
+    try {
+      const db = await openMusicCacheDb();
+      await db.put("tracks", {
+        id: trackData.id,
+        name: trackData.name,
+        album: trackData.album,
+        artists: trackData.artists,
+        image: trackData.image,
+        link: trackData.link,
+        lyrics: trackData.lyrics,
+        audioBlob: null,
+      });
+    } catch (error) {
+      console.error("Error in cacheTrackData:", error);
+    }
+  };
+
   useEffect(() => {
-    const getTrackLyricsLocally = async () => {
-      const lyricsWrapper = lyricsWrapperRef.current;
-      lyricsWrapper.innerHTML = currentTrack.lyrics ? currentTrack.lyrics?.replace(/<br>/g, "<br/>") : "Couldn't load lyrics for this song.";
+    const fetchLyricsAndCache = async () => {
+      if (currentTrack && currentTrack.id && !currentTrack.lyrics) {
+        const db = await openMusicCacheDb();
+        const cachedTrackData = await db.get("tracks", currentTrack.id);
+        if (cachedTrackData && cachedTrackData.lyrics) {
+          lyricsWrapperRef.current.innerHTML = cachedTrackData.lyrics;
+          setCurrentTrack((prevTrack) => ({
+            ...prevTrack,
+            lyrics: cachedTrackData.lyrics,
+          }));
+          return;
+        }
+        try {
+          const lyrics = await getTrackLyrics(currentTrack);
+          lyricsWrapperRef.current.innerHTML = lyrics
+            ? lyrics?.replace(/<br>/g, "<br/>")
+            : "Couldn't load lyrics for this song.";
+          setCurrentTrack((prevTrack) => ({
+            ...prevTrack,
+            lyrics: lyrics,
+          }));
+          await cacheTrackData({ ...currentTrack, lyrics: lyrics });
+        } catch (error) {
+          console.error("Error fetching and setting lyrics:", error);
+          lyricsWrapperRef.current.innerHTML =
+            "Couldn't load lyrics for this song.";
+          setCurrentTrack((prevTrack) => ({
+            ...prevTrack,
+            lyrics: null,
+          }));
+        }
+      } else if (currentTrack && currentTrack.lyrics) {
+        lyricsWrapperRef.current.innerHTML = currentTrack.lyrics?.replace(
+          /<br>/g,
+          "<br/>",
+        );
+      } else {
+        lyricsWrapperRef.current.innerHTML =
+          "Couldn't load lyrics for this song.";
+      }
     };
-    getTrackLyricsLocally();
+    fetchLyricsAndCache();
   }, [currentTrack]);
 
   const progressBarRef = useRef(null);
@@ -60,7 +165,7 @@ const TrackDeck = () => {
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [isDragging]);
+  }, [isDragging, setAudioProgress]);
 
   const handleProgressBarClick = (e) => {
     const audio = audioRef.current;
@@ -99,7 +204,7 @@ const TrackDeck = () => {
         }
       }
     },
-    [isDragging],
+    [isDragging, setAudioProgress],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -110,7 +215,7 @@ const TrackDeck = () => {
         audio.play();
       }
     }
-  }, [isDragging, isAudioPlaying]);
+  }, [isDragging, isAudioPlaying, audioRef]);
 
   useEffect(() => {
     const handleGlobalTouchMove = (e) => {
@@ -135,14 +240,14 @@ const TrackDeck = () => {
     <div className="track-deck">
       <div className="track-deck--cover">
         <LazyLoadImage
-          src={`${currentTrack.image.replace(/(50x50|150x150)/, "500x500")}`}
+          src={`${currentTrack?.image?.replace(/(50x50|150x150)/, "500x500")}`}
           alt="player-image"
         />
       </div>
       <div className="track-deck--details">
-        <label className="track-deck--details-name">{currentTrack.name}</label>
+        <label className="track-deck--details-name">{currentTrack?.name}</label>
         <label className="track-deck--details-artists">
-          {currentTrack.artists}
+          {currentTrack?.artists}
         </label>
       </div>
       <div
@@ -266,7 +371,6 @@ const TrackDeck = () => {
         <div
           className="track-deck--lyrics-wrapper"
           ref={lyricsWrapperRef}
-          trackid={null}
           style={{ whiteSpace: "pre-wrap" }}
         ></div>
       </div>
