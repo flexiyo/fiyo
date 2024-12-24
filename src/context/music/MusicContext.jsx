@@ -6,7 +6,7 @@ const MusicContext = createContext(null);
 
 export const MusicProvider = ({ children }) => {
   const [currentTrack, setCurrentTrack] = useState({});
-  const [contentQuality, setContentQuality] = useState("low");
+  const [contentQuality, setContentQuality] = useState(localStorage.getItem("contentQuality") || "normal");
   const [topTracks, setTopTracks] = useState({});
   const [loopAudio, setLoopAudio] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
@@ -44,6 +44,10 @@ export const MusicProvider = ({ children }) => {
       CapacitorNetwork.removeAllListeners();
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("contentQuality", contentQuality);
+  }, [contentQuality]);
 
   return (
     <MusicContext.Provider

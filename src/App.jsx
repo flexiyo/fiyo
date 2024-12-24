@@ -29,7 +29,9 @@ const App = () => {
   document.title = "Flexiyo";
   const [appLoading, setAppLoading] = useState(true);
   const { loading } = useContext(UserContext);
-  const [connectedToInternet, setConnectedToInternet] = useState(navigator.onLine);
+  const [connectedToInternet, setConnectedToInternet] = useState(
+    navigator.onLine,
+  );
 
   useEffect(() => {
     const updateOnlineStatus = () => {
@@ -120,7 +122,12 @@ const App = () => {
             connectedToInternet ? <Search /> : <NotConnectedToInternet />
           }
         />
-        <Route exact path="/music" lazy={true} element={<Music connectedToInternet={connectedToInternet} />} />
+        <Route
+          exact
+          path="/music"
+          lazy={true}
+          element={<Music connectedToInternet={connectedToInternet} />}
+        />
         <Route
           exact
           path="/stories"

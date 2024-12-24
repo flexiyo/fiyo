@@ -1749,32 +1749,6 @@ b {
 }
 
 /* #MUSIC - Music Player */
-.track-player {
-  position: fixed;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 550px;
-  width: 100%;
-  transition: 0.2s all;
-  backdrop-filter: blur(2px);
-  z-index: 1;
-}
-
-.track-player-box {
-  display: flex;
-  justify-content: space-between;
-  width: 95%;
-  height: 4rem;
-  padding: 0.5rem;
-  color: var(--fm-primary-text);
-  border: 0.01rem solid var(--fm-primary-border);
-  border-radius: 0.3rem;
-  background: var(--fm-secondary-bg-color);
-  margin: 0 0 0.5rem 0;
-}
-
 .track-player--image {
   display: flex;
   justify-content: flex-start;
@@ -1819,7 +1793,7 @@ b {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 5rem;
+  max-width: 5.5rem;
   width: 100%;
 }
 

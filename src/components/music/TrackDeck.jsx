@@ -4,11 +4,15 @@ import AppContext from "@/context/app/AppContext";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
 import { openDB } from "idb";
-import axios from "axios";
 
 const TrackDeck = () => {
-  const { getTrack, handleAudioPlay, handleAudioPause, handleNextAudioTrack } =
-    useMusicUtility();
+  const {
+    getTrack,
+    getTrackLyrics,
+    handleAudioPlay,
+    handleAudioPause,
+    handleNextAudioTrack,
+  } = useMusicUtility();
   const {
     currentTrack,
     audioRef,
@@ -26,7 +30,6 @@ const TrackDeck = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [touchStartPosition, setTouchStartPosition] = useState(0);
   const [isLyricsCopied, setIsLyricsCopied] = useState(false);
-  const fiyosaavnApiBaseUri = import.meta.env.VITE_FIYOSAAVN_API_BASE_URI;
 
   const openMusicCacheDb = async () => {
     return openDB("MusicCacheDB", 1, {
@@ -50,41 +53,6 @@ const TrackDeck = () => {
       });
   };
 
-  const getTrackLyrics = async (trackData) => {
-    try {
-      let data;
-      try {
-        const lyristResponse = await axios.get(
-          `https://lyrist.vercel.app/api/${trackData.name}/${trackData.artists
-            ?.split(",")[0]
-            .trim()}`,
-        );
-
-        if (lyristResponse && lyristResponse.data.lyrics) {
-          data = lyristResponse.data;
-        } else {
-          const saavnResponse = await axios.get(
-            `${fiyosaavnApiBaseUri}/songs/${trackData.id}/lyrics`,
-          );
-          data = saavnResponse.data.data;
-        }
-      } catch (error) {
-        if (error.code === "ERR_NETWORK") {
-          const saavnResponse = await axios.get(
-            `${fiyosaavnApiBaseUri}/songs/${trackData.id}/lyrics`,
-          );
-          data = saavnResponse.data.data;
-        } else {
-          throw new Error(`Error in getTrackLyrics: ${error}`);
-        }
-      }
-
-      return data.lyrics || null;
-    } catch (error) {
-      return null;
-    }
-  };
-
   const cacheTrackData = async (trackData) => {
     try {
       const db = await openMusicCacheDb();
@@ -96,7 +64,6 @@ const TrackDeck = () => {
         image: trackData.image,
         link: trackData.link,
         lyrics: trackData.lyrics,
-        audioBlob: null,
       });
     } catch (error) {
       console.error("Error in cacheTrackData:", error);
@@ -105,7 +72,7 @@ const TrackDeck = () => {
 
   useEffect(() => {
     const fetchLyricsAndCache = async () => {
-      if (currentTrack && currentTrack.id && !currentTrack.lyrics) {
+      if (currentTrack && currentTrack.id) {
         const db = await openMusicCacheDb();
         const cachedTrackData = await db.get("tracks", currentTrack.id);
         if (cachedTrackData && cachedTrackData.lyrics) {
@@ -145,8 +112,9 @@ const TrackDeck = () => {
           "Couldn't load lyrics for this song.";
       }
     };
+
     fetchLyricsAndCache();
-  }, [currentTrack]);
+  }, [currentTrack?.id]);
 
   const progressBarRef = useRef(null);
 

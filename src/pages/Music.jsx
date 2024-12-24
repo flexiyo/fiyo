@@ -26,11 +26,12 @@ const Music = ({ connectedToInternet }) => {
     currentTrack,
     isAudioPlaying,
     setIsAudioPlaying,
-    setIsAudioLoading,
     setCurrentTrack,
     setLoopAudio,
     isTrackDeckModalOpen,
     setIsTrackDeckModalOpen,
+    contentQuality,
+    setContentQuality,
   } = useContext(MusicContext);
 
   document.title = currentTrack.id
@@ -51,6 +52,8 @@ const Music = ({ connectedToInternet }) => {
   const [tracks, setTracks] = useState([]);
   const [isDownloadLoading, setIsDownloadLoading] = useState(false);
   const [modalDownloadData, setModalDownloadData] = useState("");
+  const [isMusicSettingsModalOpen, setIsMusicSettingsModalOpen] =
+    useState(false);
   const [isDownlodModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isSpeechModalOpen, setIsSpeechModalOpen] = useState(false);
   const [speechListening, setSpeechListening] = useState(false);
@@ -147,13 +150,21 @@ const Music = ({ connectedToInternet }) => {
     }
   }, [fiyosaavnApiBaseUri, connectedToInternet]);
 
-  const downloadTrack = async () => {
+  const downloadTrack = async (modalDownloadData) => {
     try {
+      setDownloadProgress(0);
+
       const response = await axios.get(modalDownloadData.fileUrl, {
         responseType: "blob",
+        onDownloadProgress: (progressEvent) => {
+          const progress = Math.round(
+            (progressEvent.loaded / progressEvent.total) * 100,
+          );
+          setDownloadProgress(progress);
+        },
       });
-      const audioBlob = response.data;
 
+      const audioBlob = response.data;
       const finalBlob = new Blob([audioBlob], { type: "audio/mpeg" });
 
       const link = document.createElement("a");
@@ -162,8 +173,13 @@ const Music = ({ connectedToInternet }) => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      setDownloadProgress(100);
     } catch (error) {
       console.error(`Error downloading track: ${error.message}`);
+      setDownloadProgress(0);
+    } finally {
+      setIsDownloadModalOpen(false);
+      setDownloadProgress(0);
     }
   };
 
@@ -293,9 +309,7 @@ const Music = ({ connectedToInternet }) => {
         trackData = currentTrack;
       }
       setModalDownloadData({
-        fileUrl:
-          (trackData.audioBlob && URL.createObjectURL(trackData.audioBlob)) ||
-          trackData.link,
+        fileUrl: trackData.link,
         fileName: `${trackData.name} - ${trackData.artists
           .split(",")[0]
           .trim()}.mp4`,
@@ -369,7 +383,7 @@ const Music = ({ connectedToInternet }) => {
 
   const stopSpeechRecognition = async () => {
     try {
-      setSpeechListening(false)
+      setSpeechListening(false);
       if (isNativePlatform) {
         await NativeSpeechRecognition.stop();
       } else {
@@ -407,6 +421,14 @@ const Music = ({ connectedToInternet }) => {
       closeSpeechModal();
     }
   }, [speechListening, speechTranscript, closeSpeechModal, searchTracks]);
+
+  const openMusicSettings = async () => {
+    setIsMusicSettingsModalOpen(true);
+  };
+
+  const closeMusicSettingsModal = async () => {
+    setIsMusicSettingsModalOpen(false);
+  };
 
   const customModalStyles = {
     content: {
@@ -464,8 +486,8 @@ const Music = ({ connectedToInternet }) => {
               navbarPrevPage="/"
               navbarCover={jioSaavnLogo}
               navbarTitle="Music"
-              navbarFirstIcon="fa fa-list-music"
               navbarSecondIcon="fa fa-gear"
+              onSecondIconClick={openMusicSettings}
             />
           </Headroom>
         ) : null}
@@ -500,6 +522,29 @@ const Music = ({ connectedToInternet }) => {
         </div>
         <div className="render-tracks">{renderTracks()}</div>
         <Modal
+          isOpen={isMusicSettingsModalOpen}
+          onRequestClose={closeMusicSettingsModal}
+          contentLabel="Music Settings Modal"
+          style={customModalStyles}
+        >
+          <h2 className="text-white text-lg font-bold">Settings</h2>
+          <hr className="mt-2 text-gray-500" />
+          <div className="flex justify-between py-3">
+            <h2 className="font-semibold text-gray-400">Content Quality</h2>
+            <div className="text-white">
+              <select
+                className="bg-gray-800 p-2 rounded"
+                defaultValue={contentQuality}
+                onChange={(e) => setContentQuality(e.target.value)}
+              >
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+          </div>
+        </Modal>
+        <Modal
           isOpen={isDownlodModalOpen}
           onRequestClose={closeDownloadModal}
           contentLabel="Download Modal"
@@ -509,7 +554,7 @@ const Music = ({ connectedToInternet }) => {
           <div className="flex my-4 items-center bg-gray-800 p-2 rounded">
             <img
               src={modalDownloadData.fileImage}
-              className="w-15 h-15 rounded"
+              className="w-14 h-14 rounded"
               alt="File Image"
             />
             <p className="text-[--fm-primary-text] mx-2">
@@ -534,7 +579,7 @@ const Music = ({ connectedToInternet }) => {
           </button>
           <button
             className="fm-primary-btn"
-            onClick={() => downloadTrack(modalDownloadData.trackId)}
+            onClick={() => downloadTrack(modalDownloadData)}
             style={{
               position: "absolute",
               bottom: "2rem",
