@@ -37,12 +37,13 @@ const TrackPlayer = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [touchStartPosition, setTouchStartPosition] = useState(0);
   const [showTrackPlayer, setShowTrackPlayer] = useState(true);
+  const [isMinimized, setIsMinimized] = useState(true);
 
   const swipeHandlers = useSwipeable({
-    onSwipedUp: () => {
+    onSwipedRight: () => {
       setShowTrackPlayer(true);
     },
-    onSwipedDown: () => {
+    onSwipedLeft: () => {
       if (isMusicRoute) return;
       setShowTrackPlayer(false);
     },
@@ -183,104 +184,155 @@ const TrackPlayer = () => {
     setIsTrackDeckModalOpen(true);
   };
 
-  return (
-    <div {...swipeHandlers}>
-      {(showTrackPlayer || isMusicRoute) &&
-      currentTrack.id &&
-      !isTrackDeckModalOpen &&
-      isMobile ? (
-        <div
-          className={`fixed flex justify-center items-center max-w-[550px] w-full transition-all duration-500 ease-in-out z-10 backdrop-blur-sm ${
-            isUserAuthenticated ? "bottom-[3rem]" : "bottom-0"
-          }`}
-        >
-          <div className="flex flex-col justify-between items-center bg-gray-900 rounded-md outline outline-1 outline-gray-800 w-[95%] mb-2 p-2">
-            <div className="flex flex-row justify-between items-center w-full">
-              <div
-                className="track-player--image"
-                onClick={handleTrackPlayerBoxClick}
-              >
-                <LazyLoadImage src={currentTrack.image} alt="player-image" />
-              </div>
-              <div className="track-player--details">
-                <span
-                  className="track-player--details-name"
-                  onClick={handleTrackPlayerBoxClick}
-                >
-                  {currentTrack.name}
-                </span>
-                <span
-                  className="track-player--details-artists"
-                  onClick={handleTrackPlayerBoxClick}
-                >
-                  {currentTrack.artists}
-                </span>
-              </div>
-              <div className="track-player--controls">
-                <span className="track-player--controls-item">
-                  {isAudioLoading && (
-                    <div className="track-player--controls-preloader"></div>
-                  )}
-                  {isAudioPlaying && !isAudioLoading ? (
-                    <svg
-                      role="img"
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      onClick={handleAudioPause}
-                    >
-                      <path d="M5.7 3a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7H5.7zm10 0a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-2.6z"></path>
-                    </svg>
-                  ) : (
-                    <svg
-                      role="img"
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      onClick={() => {
-                        handleAudioPlay();
-                        if (!currentTrack.link) {
-                          getTrack(currentTrack.id);
-                        }
-                      }}
-                    >
-                      <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
-                    </svg>
-                  )}
-                </span>
-                <span
-                  className="track-player--controls-item"
-                  onClick={handleNextAudioTrack}
-                >
-                  <svg role="img" aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="M17.7 3a.7.7 0 0 0-.7.7v6.805L5.05 3.606A.7.7 0 0 0 4 4.212v15.576a.7.7 0 0 0 1.05.606L17 13.495V20.3a.7.7 0 0 0 .7.7h1.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-1.6z"></path>
-                  </svg>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex justify-center items-center w-full">
+  const expandedPlayer = () => (
+    <div
+      className={`fixed flex justify-center items-center max-w-[550px] w-full transition-all duration-500 ease-in-out z-10 backdrop-blur-sm ${
+        isUserAuthenticated ? "bottom-[3rem]" : "bottom-0"
+      }`}
+    >
+      <div className="flex flex-col justify-between items-center bg-gray-900 rounded-md outline outline-1 outline-gray-800 w-[95%] mb-2 p-2">
+        <div className="flex flex-row justify-between items-center w-full">
           <div
-            className={`fixed bg-gray-900 cursor-pointer w-[95%] outline outline-1 outline-gray-800 rounded-t-2xl ${
-              isUserAuthenticated ? "bottom-[3rem]" : "bottom-0"
-            } ${
-              currentTrack.id && !isTrackDeckModalOpen && isMobile
-                ? "block"
-                : "hidden"
-            }`}
-            style={{ height: "6px", transition: "height 0.3s ease-in-out" }}
-            onClick={handleShowTrackPlayer}
+            className="track-player--image"
+            onClick={handleTrackPlayerBoxClick}
           >
-            <div className="w-full bg-gray-700 h-1 mt-[3px] rounded-full">
-              <div
-                className="bg-white h-full rounded-full"
-                style={{ width: `${audioProgress}%` }}
-              ></div>
-            </div>
+            <LazyLoadImage src={currentTrack.image} alt="player-image" />
+          </div>
+          <div className="track-player--details">
+            <span
+              className="track-player--details-name"
+              onClick={handleTrackPlayerBoxClick}
+            >
+              {currentTrack.name}
+            </span>
+            <span
+              className="track-player--details-artists"
+              onClick={handleTrackPlayerBoxClick}
+            >
+              {currentTrack.artists}
+            </span>
+          </div>
+          <div className="track-player--controls">
+            <span className="track-player--controls-item">
+              {isAudioLoading && (
+                <div className="track-player--controls-preloader"></div>
+              )}
+              {isAudioPlaying && !isAudioLoading ? (
+                <svg
+                  role="img"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  onClick={handleAudioPause}
+                >
+                  <path d="M5.7 3a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7H5.7zm10 0a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-2.6z"></path>
+                </svg>
+              ) : (
+                <svg
+                  role="img"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  onClick={() => {
+                    handleAudioPlay();
+                    if (!currentTrack.link) {
+                      getTrack(currentTrack.id);
+                    }
+                  }}
+                >
+                  <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
+                </svg>
+              )}
+            </span>
+            <span
+              className="track-player--controls-item"
+              onClick={handleNextAudioTrack}
+            >
+              <svg role="img" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M17.7 3a.7.7 0 0 0-.7.7v6.805L5.05 3.606A.7.7 0 0 0 4 4.212v15.576a.7.7 0 0 0 1.05.606L17 13.495V20.3a.7.7 0 0 0 .7.7h1.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-1.6z"></path>
+              </svg>
+            </span>
           </div>
         </div>
-      )}
+      </div>
     </div>
+  );
+
+  const minimalPlayer = () => (
+    <div
+      className={`fixed flex justify-center items-center max-w-[8rem] w-full transition-all duration-500 ease-in-out z-10 backdrop-blur-sm ${
+        isUserAuthenticated ? "bottom-[3rem]" : "bottom-0"
+      }`}
+    >
+      <div className="flex flex-row justify-between items-center bg-gray-900 rounded-md outline outline-1 outline-gray-800 w-[95%] mb-2 p-2">
+        <div className="track-player--image">
+          <LazyLoadImage
+            src={currentTrack.image}
+            alt="Track image"
+            className="w-12 h-12 rounded-md opacity-60"
+          />
+          {isAudioPlaying ? (
+            <button
+              onClick={handleAudioPause}
+              className="bg-transparent ml-3 fixed"
+              aria-label="Pause"
+            >
+              <svg
+                role="img"
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="w-6 h-6"
+                fill="#ffffff"
+              >
+                <path d="M5.7 3a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7H5.7zm10 0a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-2.6z"></path>
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                handleAudioPlay();
+                if (!currentTrack.link) {
+                  getTrack(currentTrack.id);
+                }
+              }}
+              className="bg-transparent ml-3 fixed"
+              aria-label="Play"
+            >
+              <svg
+                role="img"
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="w-6 h-6"
+                fill="#ffffff"
+              >
+                <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
+              </svg>
+            </button>
+          )}
+        </div>
+        <button
+          onClick={handleNextAudioTrack}
+          className="bg-transparent mx-2"
+          aria-label="Next Track"
+        >
+          <svg
+            role="img"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="w-6 h-6"
+            fill="#ffffff"
+          >
+            <path d="M17.7 3a.7.7 0 0 0-.7.7v6.805L5.05 3.606A.7.7 0 0 0 4 4.212v15.576a.7.7 0 0 0 1.05.606L17 13.495V20.3a.7.7 0 0 0 .7.7h1.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-1.6z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    (showTrackPlayer || isMusicRoute) &&
+    currentTrack.id &&
+    !isTrackDeckModalOpen &&
+    isMobile &&
+    (isMinimized && !isMusicRoute ? minimalPlayer() : expandedPlayer())
   );
 };
 
