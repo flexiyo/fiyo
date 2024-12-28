@@ -483,7 +483,6 @@ const Music = ({ connectedToInternet }) => {
         {isMobile ? (
           <Headroom>
             <CustomTopNavbar
-              navbarPrevPage="/"
               navbarCover={jioSaavnLogo}
               navbarTitle="Music"
               navbarSecondIcon="fa fa-gear"

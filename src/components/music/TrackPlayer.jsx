@@ -258,11 +258,11 @@ const TrackPlayer = () => {
 
   const minimalPlayer = () => (
     <div
-      className={`fixed flex justify-center items-center max-w-[8rem] w-full transition-all duration-500 ease-in-out z-10 backdrop-blur-sm ${
+      className={`fixed flex justify-center items-center max-w-36 w-full transition-all duration-500 ease-in-out z-10 backdrop-blur-sm ${
         isUserAuthenticated ? "bottom-[3rem]" : "bottom-0"
       }`}
     >
-      <div className="flex flex-row justify-between items-center bg-gray-900 rounded-md outline outline-1 outline-gray-800 w-[95%] mb-2 p-2">
+      <div className="flex flex-row justify-between items-center bg-gray-900 rounded-md outline outline-1 outline-gray-800 w-[85%] mb-2 p-2">
         <div className="track-player--image">
           <LazyLoadImage
             src={currentTrack.image}

@@ -1,10 +1,17 @@
 import React, { useContext } from "react";
-import UserContext from "@/context/user/UserContext";
 import { NavLink, useLocation } from "react-router-dom";
+import UserContext from "@/context/user/UserContext";
+import MusicContext from "@/context/music/MusicContext";
 
 export default function BottomNavbar() {
   const { userInfo } = useContext(UserContext);
-  const withoutBottomNavbarRoutes = ["/inbox", "/direct/t/"];
+  const { isAudioPlaying } = useContext(MusicContext);
+  const withoutBottomNavbarRoutes = [
+    "create",
+    "/notifications",
+    "/inbox",
+    "/direct/t/",
+  ];
   const { pathname } = useLocation();
 
   if (withoutBottomNavbarRoutes.some((item) => pathname.includes(item))) {
@@ -12,8 +19,8 @@ export default function BottomNavbar() {
   }
   return (
     <>
-      <nav id="mobile-bottom-navbar">
-        <i className="bottom-nav-icon">
+      <div id="mobile-bottom-navbar" className="relative bg-gray-800">
+        <span className="flex w-full h-full items-center justify-center">
           <NavLink
             className={({ isActive }) =>
               `home-icon-link ${isActive ? "active" : ""}`
@@ -27,13 +34,13 @@ export default function BottomNavbar() {
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                stroke="#fff"
+                stroke="#ffffff"
                 d="M13.45 2.533a2.25 2.25 0 0 0-2.9 0L3.8 8.228a2.25 2.25 0 0 0-.8 1.72v9.305c0 .966.784 1.75 1.75 1.75h3a1.75 1.75 0 0 0 1.75-1.75V15.25c0-.68.542-1.232 1.217-1.25h2.566a1.25 1.25 0 0 1 1.217 1.25v4.003c0 .966.784 1.75 1.75 1.75h3a1.75 1.75 0 0 0 1.75-1.75V9.947a2.25 2.25 0 0 0-.8-1.72z"
               ></path>
             </svg>
           </NavLink>
-        </i>
-        <i className="bottom-nav-icon">
+        </span>
+        <span className="flex flex-grow w-full h-full items-center justify-center">
           <NavLink
             className={({ isActive }) =>
               `search-icon-link ${isActive ? "active" : ""}`
@@ -43,9 +50,8 @@ export default function BottomNavbar() {
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              className="search-icon"
+              className="search-icon cursor-pointer"
               height="1.7rem"
-              style={{ cursor: "pointer" }}
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
@@ -57,41 +63,62 @@ export default function BottomNavbar() {
               ></path>
             </svg>
           </NavLink>
-        </i>
-        <i className="bottom-nav-icon">
-          <NavLink
-            className={({ isActive }) =>
-              `new-post-icon-link ${isActive ? "active" : ""}`
-            }
-            to="/create"
-          >
-            <svg
-              className="new-post-icon"
-              height="1.7rem"
+        </span>
+        <span className="flex flex-grow w-full h-full items-center justify-center">
+          <NavLink to="/music">
+            {({ isActive }) => (
+              <svg
+              className={`music-icon cursor-pointer ${
+                isActive ? "scale-110" : "scale-100"
+              } ${isAudioPlaying && "animate-spin-slow"} duration-100`}
+              height="2rem"
+              fill="none"
               role="img"
-              viewBox="0 0 24 24"
-              style={{ cursor: "pointer" }}
+              viewBox="0 0 512 512"
             >
-              <path
-                stroke="#ffffff"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.5"
-                d="M 9.713 3.64 C 10.293999999999999 3.145 10.584999999999999 2.8970000000000002 10.889 2.7520000000000002 C 11.591624359671847 2.4162818507079997 12.40837564032815 2.416281850708 13.110999999999999 2.7520000000000002 C 13.415 2.8970000000000002 13.706 3.1450000000000005 14.286999999999999 3.64 C 14.886 4.15 15.494 4.408 16.294 4.471 C 17.055 4.532 17.436 4.563 17.754 4.675 C 18.488 4.9350000000000005 19.066000000000003 5.5120000000000005 19.325000000000003 6.247 C 19.437 6.564 19.468000000000004 6.945 19.529000000000003 7.707 C 19.592000000000002 8.507 19.849000000000004 9.114 20.359 9.713 C 20.855 10.293999999999999 21.103 10.584999999999999 21.248 10.889 C 21.584 11.591999999999999 21.584 12.408999999999999 21.248 13.110999999999999 C 21.103 13.415 20.855 13.706 20.36 14.286999999999999 C 19.864847042940166 14.843302828535947 19.57203292139703 15.550496499269688 19.529 16.294 C 19.468 17.055 19.437 17.436 19.325 17.754 C 19.065336933588345 18.488320756078394 18.48748583992221 19.06580425964224 17.753 19.325000000000003 C 17.436 19.437 17.055 19.468000000000004 16.293 19.529000000000003 C 15.492999999999999 19.592000000000002 14.886 19.849000000000004 14.286999999999999 20.359 C 13.706 20.855 13.415 21.103 13.110999999999999 21.248 C 12.40837564032815 21.583718149292 11.591624359671847 21.583718149292 10.889 21.248 C 10.584999999999999 21.103 10.293999999999999 20.855 9.713 20.36 C 9.156697170457107 19.864847040894013 8.449503502869916 19.572032920990843 7.7059999999999995 19.529 C 6.944999999999999 19.468 6.564 19.437 6.2459999999999996 19.325 C 5.511679244631566 19.065336933027048 4.934195739867238 18.48748583958395 4.674999999999999 17.753 C 4.562999999999999 17.436 4.531999999999999 17.055 4.470999999999999 16.293 C 4.428101727427417 15.54995046787193 4.135649969097299 14.843133326691984 3.640999999999999 14.286999999999999 C 3.144999999999999 13.706 2.8969999999999994 13.415 2.750999999999999 13.110999999999999 C 2.4155980261311623 12.408224560835876 2.415965600681959 11.591473262439504 2.751999999999999 10.889 C 2.896999999999999 10.584999999999999 3.1449999999999987 10.293999999999999 3.639999999999999 9.713 C 4.159999999999998 9.101999999999999 4.408999999999999 8.489999999999998 4.470999999999999 7.7059999999999995 C 4.531999999999999 6.944999999999999 4.562999999999999 6.564 4.674999999999999 6.2459999999999996 C 4.9346630664116535 5.5116792439216065 5.512514160077788 4.934195740357764 6.246999999999999 4.674999999999999 C 6.563999999999999 4.562999999999999 6.9449999999999985 4.531999999999999 7.706999999999999 4.470999999999999 C 8.450049536763004 4.4281017293574285 9.15686667044701 4.135649972675777 9.713 3.640999999999999 L 9.713 3.64 Z"
-                fill="none"
-              ></path>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.5"
-                d="M 12 12 L 12 8.5 L 12 12 Z M 15.5 12 L 12 12 L 15.5 12 Z M 12 12 L 8.5 12 L 12 12 Z M 12 12 L 12 15.5 L 12 12 Z"
-                stroke="#ffffff"
-                fill="none"
-              ></path>
-            </svg>
+                <circle
+                  className={isActive ? "fill-red-600" : "fill-gray-600"}
+                  cx="256"
+                  cy="256"
+                  r="256"
+                />
+                <path
+                  className={isActive ? "fill-red-700" : "fill-gray-700"}
+                  d="M295.726,508.899c51.721-8.082,101.443-32.028,141.293-71.878
+        c43.525-43.525,68.093-98.826,73.719-155.648L367.011,137.645L248.53,170.667v37.838l-59.363-59.363l-7.873,7.73l-25.445,19.173
+        l92.679,92.679v68.012l-40.545,23.39l-69.554-69.554l-15.17,10.538l-19.796,15.245l65.998,65.998l-0.179,0.103L295.726,508.899z"
+                />
+                <g>
+                  <path
+                    className="fill-white"
+                    d="M312.889,271.082c0-6.902,5.596-12.497,12.498-12.497c6.902,0,12.498,5.596,12.498,12.497
+          c0-6.902,5.596-12.497,12.498-12.497c6.903,0,12.498,5.596,12.498,12.497c0,11.95-24.997,26.245-24.997,26.245
+          S312.889,283.707,312.889,271.082z"
+                  />
+                  <path
+                    className="fill-white"
+                    d="M142.222,157.305c0-6.903,5.596-12.497,12.498-12.497s12.498,5.596,12.498,12.497
+          c0-6.903,5.596-12.497,12.498-12.497s12.498,5.596,12.498,12.497c0,11.95-24.997,26.245-24.997,26.245
+          S142.222,169.929,142.222,157.305z"
+                  />
+                  <path
+                    className="fill-white"
+                    d="M92.229,299.527c0-6.903,5.596-12.497,12.498-12.497c6.903,0,12.498,5.596,12.498,12.497
+          c0-6.903,5.596-12.497,12.498-12.497c6.903,0,12.498,5.596,12.498,12.497c0,11.95-24.997,26.245-24.997,26.245
+          S92.229,312.151,92.229,299.527z"
+                  />
+                </g>
+                <path
+                  className="fill-yellow-500"
+                  d="M235.654,137.645v159.896c-17.496-7.651-41.294-2.098-58.633,15.243
+        c-21.373,21.376-24.838,52.569-7.739,69.67s48.288,13.634,69.663-7.742c11.707-11.709,18.027-26.36,18.553-40.031h0.05v-153.25
+        h65.679c24.183,0,43.785-19.604,43.785-43.785L235.654,137.645L235.654,137.645z"
+                />
+              </svg>
+            )}
           </NavLink>
-        </i>
-        <i className="bottom-nav-icon">
+        </span>
+        <span className="flex flex-grow w-full h-full items-center justify-center">
           <NavLink
             className={({ isActive }) =>
               `clips-icon-link ${isActive ? "active" : ""}`
@@ -99,8 +126,7 @@ export default function BottomNavbar() {
             to="/clips"
           >
             <svg
-              className="clips-icon"
-              style={{ cursor: "pointer" }}
+              className="clips-icon cursor-pointer"
               height="1.7rem"
               fill="currentColor"
               role="img"
@@ -119,8 +145,8 @@ export default function BottomNavbar() {
               ></path>
             </svg>
           </NavLink>
-        </i>
-        <i className="bottom-nav-icon">
+        </span>
+        <span className="flex flex-grow w-full h-full items-center justify-center">
           <NavLink
             className={({ isActive }) =>
               `user-profile-icon-link ${isActive ? "active" : ""}`
@@ -135,8 +161,8 @@ export default function BottomNavbar() {
               />
             </div>
           </NavLink>
-        </i>
-      </nav>
+        </span>
+      </div>
     </>
   );
 }
