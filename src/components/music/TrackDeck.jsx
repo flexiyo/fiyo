@@ -1,5 +1,4 @@
 import { useContext, useEffect, useState, useCallback, useRef } from "react";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 import AppContext from "@/context/app/AppContext";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
@@ -207,7 +206,7 @@ const TrackDeck = () => {
   return (
     <div className="track-deck">
       <div className="track-deck--cover">
-        <LazyLoadImage
+        <img
           src={`${currentTrack?.image?.replace(/(50x50|150x150)/, "500x500")}`}
           alt="player-image"
         />

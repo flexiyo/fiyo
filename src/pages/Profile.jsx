@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 import Headroom from "react-headroom";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
 import UserContext from "@/context/user/UserContext";
 
@@ -49,7 +48,7 @@ export default function Profile() {
         <div className="profile-user">
           <div className="user-card">
             <div className="user-card--avatar">
-              <LazyLoadImage src={userInfo.avatar} alt="User-Avatar"/>
+              <img src={userInfo.avatar} alt="User-Avatar"/>
             </div>
             <div className="user-card-connections">
               <div className="user-card-connections-items">
@@ -109,55 +108,55 @@ export default function Profile() {
             <span className="user-posts--label">Posts (15)</span>
             <div className="user-posts-grid">
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/500x500"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/450x450"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/300x300"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/350x350"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/200x200"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/600x600"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/550x550"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/100x100"
                 />
               </span>
               <span className="user-posts-grid--cell">
-                <LazyLoadImage
+                <img
                   alt="Post"
                   src="https://source.unsplash.com/random/150x150"
                 />

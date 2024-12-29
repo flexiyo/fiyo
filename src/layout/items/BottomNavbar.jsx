@@ -68,14 +68,14 @@ export default function BottomNavbar() {
           <NavLink to="/music">
             {({ isActive }) => (
               <svg
-              className={`music-icon cursor-pointer ${
-                isActive ? "scale-110" : "scale-100"
-              } ${isAudioPlaying && "animate-spin-slow"} duration-100`}
-              height="2rem"
-              fill="none"
-              role="img"
-              viewBox="0 0 512 512"
-            >
+                className={`music-icon cursor-pointer ${
+                  isAudioPlaying && "animate-spin-slow"
+                } duration-100`}
+                height="2rem"
+                fill="none"
+                role="img"
+                viewBox="0 0 512 512"
+              >
                 <circle
                   className={isActive ? "fill-red-600" : "fill-gray-600"}
                   cx="256"

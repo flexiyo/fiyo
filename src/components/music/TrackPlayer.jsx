@@ -10,7 +10,6 @@ import AppContext from "@/context/app/AppContext";
 import UserContext from "@/context/user/UserContext";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 
 const TrackPlayer = () => {
   const { isMobile } = useContext(AppContext);
@@ -185,7 +184,7 @@ const TrackPlayer = () => {
             className="track-player--image"
             onClick={handleTrackPlayerBoxClick}
           >
-            <LazyLoadImage src={currentTrack.image} alt="player-image" />
+            <img src={currentTrack.image} alt="player-image" />
           </div>
           <div className="track-player--details">
             <span
@@ -253,7 +252,7 @@ const TrackPlayer = () => {
     >
       <div className="flex flex-row justify-between items-center bg-gray-900 rounded-md outline outline-1 outline-gray-800 w-[85%] mb-2 p-2">
         <div className="track-player--image">
-          <LazyLoadImage
+          <img
             src={currentTrack.image}
             alt="Track image"
             className="w-12 h-12 rounded-md opacity-60"

@@ -4,7 +4,6 @@ import { Alert, Container, Typography, TextField, Button } from "@mui/material";
 import TypewriterComponent from "typewriter-effect";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 import AppContext from "@/context/app/AppContext";
 import UserContext from "@/context/user/UserContext";
 import { Link, useNavigate } from "react-router-dom";
@@ -88,7 +87,7 @@ const Login = () => {
               className="auth-main--cover-title"
               style={{ fontFamily: "SpotifyMedium" }}
             >
-              <LazyLoadImage
+              <img
                 src={logo}
                 alt="logo"
                 style={{

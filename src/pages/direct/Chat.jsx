@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Snowflake from "snowflake-id";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 import CustomTopNavbar from "@/layout/items/CustomTopNavbar";
 import InboxList from "@/components/direct/InboxList";
 import UserFilesSheet from "@/components/direct/chat/UserFilesSheet";
@@ -263,7 +262,7 @@ const Chat = () => {
                   }`}
                 >
                   {!isSelfMessage && isFirstInBlock && (
-                    <LazyLoadImage
+                    <img
                       src={recipientInfo?.avatar}
                       className="w-9 h-9 rounded-full object-cover mr-2"
                     />

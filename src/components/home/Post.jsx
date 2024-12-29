@@ -1,5 +1,4 @@
 import React from "react";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 import kaushalKrishnaImg from "@/assets/media/img/kaushal_krishna.jpg";
 
 export default function Post() {
@@ -10,7 +9,7 @@ export default function Post() {
           <div className="post-details">
             <div className="post-heading">
               <div className="post-profile-pic">
-                <LazyLoadImage src={kaushalKrishnaImg} alt="Profile Pic" />
+                <img src={kaushalKrishnaImg} alt="Profile Pic" />
               </div>
               <div className="post-sub-details">
                 <label className="post-username">kaushal.krishna</label>
@@ -30,7 +29,7 @@ export default function Post() {
             </div>
           </div>
           <div className="post-content">
-            <LazyLoadImage
+            <img
               alt="Post"
               src="https://demo.tiny.pictures/main/example1.jpg?width=500&height=250&resizeType=cover&gravity=0.5%2C0.38"
             />

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import Sheet from "react-modal-sheet";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 
 const UserFilesSheet = ({
   openUserFilesSheet,
@@ -79,9 +78,9 @@ const UserFilesSheet = ({
     return uploadedFiles.items.map((file, index) => (
       <span key={index} className="user-files--sheet-file">
         {file.type === "image" ? (
-          <LazyLoadImage src={file.src} alt={file.name} />
+          <img src={file.src} alt={file.name} />
         ) : (
-          <LazyLoadImage
+          <img
             name="other-file-icon"
             src={`${fivIconBaseUrl}/${file.extension}.svg`}
             alt="file-icon"

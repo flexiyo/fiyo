@@ -1,5 +1,4 @@
 import { useState, useContext } from "react";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
 const TrackItem = ({ id, track, index, onOpenDownloadModal }) => {
@@ -26,7 +25,7 @@ const TrackItem = ({ id, track, index, onOpenDownloadModal }) => {
       id={`trackItem${index}`}
     >
       <div className="grid grid-cols-[20%_70%_10%] mb-4 h-16 items-center place-items-center">
-        <LazyLoadImage
+        <img
           className="overflow-hidden mx-auto w-14 h-14 object-cover rounded-sm"
           src={
             Array.isArray(track.image)
