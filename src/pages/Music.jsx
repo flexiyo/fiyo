@@ -11,8 +11,6 @@ import AppContext from "@/context/app/AppContext";
 import MusicContext from "@/context/music/MusicContext";
 import useMusicUtility from "@/utils/music/useMusicUtility";
 import jioSaavnLogo from "@/assets/media/img/logo/jioSaavn.svg";
-import { Capacitor } from "@capacitor/core";
-import { SpeechRecognition as NativeSpeechRecognition } from "@capacitor-community/speech-recognition";
 import WebSpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -60,8 +58,6 @@ const Music = ({ connectedToInternet }) => {
   const [speechTranscript, setSpeechTranscript] = useState("");
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
-
-  const isNativePlatform = Capacitor.getPlatform() !== "web";
 
   const searchTracks = useCallback(
     async (searchTerm) => {
@@ -352,21 +348,6 @@ const Music = ({ connectedToInternet }) => {
   const startSpeechRecognition = async () => {
     setSpeechListening(true);
     if (!browserSupportsSpeechRecognition) setSpeechListening(false);
-    if (isNativePlatform) {
-      try {
-        const hasPermission = await NativeSpeechRecognition.checkPermissions();
-        if (!hasPermission) {
-          await NativeSpeechRecognition.requestPermissions();
-        }
-
-        await NativeSpeechRecognition.start({
-          language: "en-IN",
-          partialResults: true,
-        });
-      } catch (error) {
-        console.error("Error starting native speech recognition:", error);
-      }
-    } else {
       try {
         WebSpeechRecognition.startListening({
           language: "en-IN",
@@ -375,7 +356,6 @@ const Music = ({ connectedToInternet }) => {
       } catch (error) {
         console.error("Error starting web speech recognition:", error);
       }
-    }
     setTimeout(() => {
       closeSpeechModal();
     }, 10000);
@@ -384,11 +364,7 @@ const Music = ({ connectedToInternet }) => {
   const stopSpeechRecognition = async () => {
     try {
       setSpeechListening(false);
-      if (isNativePlatform) {
-        await NativeSpeechRecognition.stop();
-      } else {
         await WebSpeechRecognition.stopListening();
-      }
     } catch (error) {
       console.error("Error stopping speech recognition:", error);
     }

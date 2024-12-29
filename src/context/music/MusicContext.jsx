@@ -1,12 +1,12 @@
 import { createContext, useEffect, useState, useRef } from "react";
-import { Capacitor } from "@capacitor/core";
-import { Network as CapacitorNetwork } from "@capacitor/network";
 
 const MusicContext = createContext(null);
 
 export const MusicProvider = ({ children }) => {
   const [currentTrack, setCurrentTrack] = useState({});
-  const [contentQuality, setContentQuality] = useState(localStorage.getItem("contentQuality") || "normal");
+  const [contentQuality, setContentQuality] = useState(
+    localStorage.getItem("contentQuality") || "normal",
+  );
   const [topTracks, setTopTracks] = useState({});
   const [loopAudio, setLoopAudio] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
@@ -18,31 +18,13 @@ export const MusicProvider = ({ children }) => {
   const audioRef = useRef(new Audio());
 
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      CapacitorNetwork.getStatus().then((status) => {
-        setIsNetworkConnected(status.connected);
-      });
-      const handleNetworkStatusChange = (status) => {
-        setIsNetworkConnected(status.connected);
-      };
-
-      CapacitorNetwork.addListener(
-        "networkStatusChange",
-        handleNetworkStatusChange,
-      );
-    } else {
-      setIsNetworkConnected(navigator.onLine);
-      window.addEventListener("online", () => {
-        setIsNetworkConnected(true);
-      });
-      window.addEventListener("offline", () => {
-        setIsNetworkConnected(false);
-      });
-    }
-
-    return () => {
-      CapacitorNetwork.removeAllListeners();
-    };
+    setIsNetworkConnected(navigator.onLine);
+    window.addEventListener("online", () => {
+      setIsNetworkConnected(true);
+    });
+    window.addEventListener("offline", () => {
+      setIsNetworkConnected(false);
+    });
   }, []);
 
   useEffect(() => {

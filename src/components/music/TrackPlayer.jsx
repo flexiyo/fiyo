@@ -6,7 +6,6 @@ import React, {
   useContext,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useSwipeable } from "react-swipeable";
 import AppContext from "@/context/app/AppContext";
 import UserContext from "@/context/user/UserContext";
 import MusicContext from "@/context/music/MusicContext";
@@ -38,16 +37,6 @@ const TrackPlayer = () => {
   const [touchStartPosition, setTouchStartPosition] = useState(0);
   const [showTrackPlayer, setShowTrackPlayer] = useState(true);
   const [isMinimized, setIsMinimized] = useState(true);
-
-  const swipeHandlers = useSwipeable({
-    onSwipedRight: () => {
-      setShowTrackPlayer(true);
-    },
-    onSwipedLeft: () => {
-      if (isMusicRoute) return;
-      setShowTrackPlayer(false);
-    },
-  });
 
   useEffect(() => {
     if (location.pathname === "/music") {

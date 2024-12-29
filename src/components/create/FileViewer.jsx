@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 
 const FileViewer = ({ fileType, filePath, fileThumbnail }) => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -54,7 +53,7 @@ const FileViewer = ({ fileType, filePath, fileThumbnail }) => {
       }}
     >
       {fileType === "image" ? (
-        <LazyLoadImage
+        <img
           src={filePath}
           alt="file-content"
           style={{ width: "100%", height: "100%", objectFit: "contain" }}

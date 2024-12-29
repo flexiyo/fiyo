@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useContext } from "react";
 import FileViewer from "./FileViewer";
 import CreateContext from "@/context/create/CreateContext";
 

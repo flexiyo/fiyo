@@ -1,7 +1,6 @@
 import { useContext, useEffect, useCallback } from "react";
 import axios from "axios";
 import MusicContext from "@/context/music/MusicContext";
-import { MediaSession } from "@jofr/capacitor-media-session";
 import { openDB } from "idb";
 
 const useMusicUtility = () => {
@@ -221,53 +220,48 @@ const useMusicUtility = () => {
 
   useEffect(() => {
     const audio = audioRef.current;
-
+  
     if (currentTrack.id && audio) {
-      const artworkUrl = currentTrack.image.replace(
-        /(50x50|150x150)/,
-        "500x500",
-      );
-
-      const updatePlaybackState = () => {
-        const playbackState = audio.paused ? "paused" : "playing";
-        MediaSession.setPlaybackState(playbackState);
-      };
-
-      MediaSession.setMetadata({
+      navigator.mediaSession.metadata = new MediaMetadata({
         title: currentTrack.name,
         artist: currentTrack.artists,
         album: currentTrack.album,
         artwork: [
           {
-            src: artworkUrl,
+            src: currentTrack.image.replace(/(50x50|150x150)/, "500x500"),
             sizes: "500x500",
             type: "image/jpg",
           },
         ],
       });
-
+  
+      const updatePlaybackState = () => {
+        navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
+      };
+  
       audio.addEventListener("play", updatePlaybackState);
       audio.addEventListener("pause", updatePlaybackState);
-
-      MediaSession.setActionHandler({ action: "play" }, async () => {
+  
+      navigator.mediaSession.setActionHandler("play", async () => {
         await audio.play();
-        handleAudioPlay();
       });
-
-      MediaSession.setActionHandler({ action: "pause" }, () => {
+  
+      navigator.mediaSession.setActionHandler("pause", () => {
         audio.pause();
-        handleAudioPause();
       });
-
-      MediaSession.setActionHandler({ action: "nexttrack" }, () => {
-        handleNextAudioTrack("manual");
-      });
-
+  
+      navigator.mediaSession.setActionHandler("nexttrack", handleNextAudioTrack);
+  
       return () => {
+        audio.removeEventListener("play", updatePlaybackState);
         audio.removeEventListener("pause", updatePlaybackState);
+        navigator.mediaSession.setActionHandler("play", null);
+        navigator.mediaSession.setActionHandler("pause", null);
+        navigator.mediaSession.setActionHandler("nexttrack", null);
       };
     }
   }, [currentTrack, audioRef]);
+  
 
   return {
     getTrack,

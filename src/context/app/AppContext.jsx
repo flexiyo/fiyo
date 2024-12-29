@@ -1,12 +1,9 @@
-import { Capacitor } from "@capacitor/core";
 import { createContext, useState, useEffect } from "react";
 
 const AppContext = createContext(null);
 
 export const AppProvider = ({ children }) => {
-  const [isMobile, setIsMobile] = useState(
-    Capacitor.getPlatform() === "android" || false,
-  );
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 600px)");

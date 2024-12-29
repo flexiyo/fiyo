@@ -1,6 +1,5 @@
 import "./App.css";
 import React, { useState, useEffect, useContext } from "react";
-import { App as CapacitorApp } from "@capacitor/app";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import {
@@ -59,13 +58,9 @@ const App = () => {
       element.style.userSelect = "none";
     });
 
-    CapacitorApp.addListener("backButton", ({ canGoBack }) => {
-      if (!canGoBack) {
-        CapacitorApp.exitApp();
-      } else {
-        window.history.back();
-      }
-    });
+    window.addEventListener("popstate", () => {
+      window.history.back();
+    });    
 
     const initializeApp = async () => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
