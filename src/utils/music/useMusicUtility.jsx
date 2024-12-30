@@ -250,14 +250,14 @@ const useMusicUtility = () => {
         audio.pause();
       });
   
-      navigator.mediaSession.setActionHandler("nexttrack", handleNextAudioTrack);
+      navigator.mediaSession.setActionHandler("next", handleNextAudioTrack);
   
       return () => {
         audio.removeEventListener("play", updatePlaybackState);
         audio.removeEventListener("pause", updatePlaybackState);
         navigator.mediaSession.setActionHandler("play", null);
         navigator.mediaSession.setActionHandler("pause", null);
-        navigator.mediaSession.setActionHandler("nexttrack", null);
+        navigator.mediaSession.setActionHandler("next", null);
       };
     }
   }, [currentTrack, audioRef]);
