@@ -220,7 +220,8 @@ const useMusicUtility = () => {
 
   useEffect(() => {
     const audio = audioRef.current;
-    const MediaSession = navigator.MediaSession;
+    const MediaSession = navigator.mediaSession;
+    
     if ("mediaSession" in navigator && currentTrack.id && audio) {
       MediaSession.metadata = new MediaMetadata({
         title: currentTrack.name,
