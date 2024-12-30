@@ -220,9 +220,9 @@ const useMusicUtility = () => {
 
   useEffect(() => {
     const audio = audioRef.current;
-  
-    if (currentTrack.id && audio) {
-      navigator.mediaSession.metadata = new MediaMetadata({
+    const MediaSession = navigator.MediaSession;
+    if ("mediaSession" in navigator && currentTrack.id && audio) {
+      MediaSession.metadata = new MediaMetadata({
         title: currentTrack.name,
         artist: currentTrack.artists,
         album: currentTrack.album,
@@ -236,32 +236,31 @@ const useMusicUtility = () => {
       });
   
       const updatePlaybackState = () => {
-        navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
+        MediaSession.playbackState = audio.paused ? "paused" : "playing";
       };
   
       audio.addEventListener("play", updatePlaybackState);
       audio.addEventListener("pause", updatePlaybackState);
   
-      navigator.mediaSession.setActionHandler("play", async () => {
+      MediaSession.setActionHandler("play", async () => {
         await audio.play();
       });
   
-      navigator.mediaSession.setActionHandler("pause", () => {
+      MediaSession.setActionHandler("pause", () => {
         audio.pause();
       });
   
-      navigator.mediaSession.setActionHandler("next", handleNextAudioTrack);
+      MediaSession.setActionHandler("nexttrack", handleNextAudioTrack);
   
       return () => {
         audio.removeEventListener("play", updatePlaybackState);
         audio.removeEventListener("pause", updatePlaybackState);
-        navigator.mediaSession.setActionHandler("play", null);
-        navigator.mediaSession.setActionHandler("pause", null);
-        navigator.mediaSession.setActionHandler("next", null);
+        MediaSession.setActionHandler("play", null);
+        MediaSession.setActionHandler("pause", null);
+        MediaSession.setActionHandler("nexttrack", null);
       };
     }
   }, [currentTrack, audioRef]);
-  
 
   return {
     getTrack,
