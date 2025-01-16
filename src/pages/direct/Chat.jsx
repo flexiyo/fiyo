@@ -239,9 +239,9 @@ const Chat = () => {
               const isSingleMessage = !isSameSenderPrev && !isSameSenderNext;
 
               const bgColor = isSelfMessage ? "bg-[#1572db]" : "bg-[#222933]";
-              const baseClasses = "text-left py-2 px-3 break-words rounded-3xl";
+              const baseClasses = "text-left py-2 px-3 break-words";
               const borderRadius = isSingleMessage
-                ? "rounded-xl"
+                ? "rounded-full"
                 : isSelfMessage
                 ? isFirstInBlock
                   ? "rounded-br-md"
