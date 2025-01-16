@@ -22,7 +22,6 @@ const TrackPlayer = () => {
     setIsAudioLoading,
     isAudioPlaying,
     setIsAudioPlaying,
-    audioProgress,
     setAudioProgress,
     isTrackDeckModalOpen,
     setIsTrackDeckModalOpen,
@@ -32,10 +31,7 @@ const TrackPlayer = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMusicRoute, setIsMusicRoute] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
-  const [touchStartPosition, setTouchStartPosition] = useState(0);
   const [showTrackPlayer, setShowTrackPlayer] = useState(true);
-  const [isMinimized, setIsMinimized] = useState(true);
 
   useEffect(() => {
     if (location.pathname === "/music") {
@@ -45,16 +41,12 @@ const TrackPlayer = () => {
     }
   }, [currentTrack.id, location.pathname, setIsMusicRoute]);
 
-  const progressBarRef = useRef(null);
-
   useEffect(() => {
     const audio = audioRef.current;
 
     const handleTimeUpdate = () => {
-      if (!isDragging) {
-        const newPosition = (audio.currentTime / audio.duration) * 100;
-        setAudioProgress(newPosition);
-      }
+      const newPosition = (audio.currentTime / audio.duration) * 100;
+      setAudioProgress(newPosition);
     };
 
     const handleEnded = () => {
@@ -68,77 +60,7 @@ const TrackPlayer = () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [audioRef, setAudioProgress, handleNextAudioTrack, isDragging]);
-
-  const handleProgressBarClick = (e) => {
-    const audio = audioRef.current;
-    const progressBar = progressBarRef.current;
-    const newPosition = (e.nativeEvent.offsetX / progressBar.clientWidth) * 100;
-    setAudioProgress(newPosition);
-    audio.currentTime = (newPosition / 100) * audio.duration;
-  };
-
-  const handleTouchStart = (e) => {
-    setIsDragging(true);
-    setTouchStartPosition(e.touches[0].clientX);
-    return touchStartPosition;
-  };
-
-  const handleTouchMove = useCallback(
-    (e) => {
-      if (isDragging) {
-        const audio = audioRef.current;
-        const progressBar = progressBarRef.current;
-        const touchPosition = e.touches[0].clientX;
-        const progressBarRect = progressBar.getBoundingClientRect();
-        const newPosition =
-          ((touchPosition - progressBarRect.left) / progressBarRect.width) *
-          100;
-
-        const clampedPosition = Math.max(0, Math.min(100, newPosition));
-
-        setAudioProgress(clampedPosition);
-        audio.currentTime = (clampedPosition / 100) * audio.duration;
-
-        if (
-          touchPosition < progressBarRect.left ||
-          touchPosition > progressBarRect.right
-        ) {
-          setIsDragging(false);
-        }
-      }
-    },
-    [audioRef, setAudioProgress, isDragging],
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    if (isDragging) {
-      const audio = audioRef.current;
-      setIsDragging(false);
-      if (isAudioPlaying) {
-        audio.play();
-      }
-    }
-  }, [audioRef, isDragging, isAudioPlaying]);
-
-  useEffect(() => {
-    const handleGlobalTouchMove = (e) => {
-      handleTouchMove(e);
-    };
-    const handleGlobalTouchEnd = () => {
-      handleTouchEnd();
-    };
-
-    document.addEventListener("touchmove", handleGlobalTouchMove, {
-      passive: false,
-    });
-    document.addEventListener("touchend", handleGlobalTouchEnd);
-
-    return () => {
-      document.removeEventListener("touchmove", handleGlobalTouchMove);
-      document.removeEventListener("touchend", handleGlobalTouchEnd);
-    };
-  }, [handleTouchMove, handleTouchEnd]);
+  }, [audioRef, setAudioProgress, handleNextAudioTrack]);
 
   useEffect(() => {
     const playAudio = async () => {
@@ -320,7 +242,7 @@ const TrackPlayer = () => {
     currentTrack.id &&
     !isTrackDeckModalOpen &&
     isMobile &&
-    (isMinimized && !isMusicRoute ? minimalPlayer() : expandedPlayer())
+    (!isMusicRoute ? minimalPlayer() : expandedPlayer())
   );
 };
 
