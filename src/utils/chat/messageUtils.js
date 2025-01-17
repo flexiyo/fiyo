@@ -25,7 +25,7 @@ export const getLastLog = async (messageStock, userId) => {
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
-    return "now";
+    return "just now";
   };
 
   const { messages, seenBy } = messageStock || { messages: [], seenBy: [] };
