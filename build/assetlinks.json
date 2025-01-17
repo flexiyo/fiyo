@@ -1,0 +1,12 @@
+{
+    "relation": [
+        "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+        "namespace": "android_app",
+        "package_name": "com.fiyonv.flexiyo",
+        "sha256_cert_fingerprints": [
+            "3A:9C:CB:5A:1F:F5:23:FB:8D:A2:A0:33:5A:7D:E5:00:D0:DA:31:3D:3E:84:53:B9:78:C5:30:1B:ED:8B:77:98"
+        ]
+    }
+}
