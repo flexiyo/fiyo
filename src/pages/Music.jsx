@@ -197,7 +197,8 @@ const Music = ({ connectedToInternet }) => {
 
       if (trackParam) {
         try {
-          getTrack(trackParam);
+          playTrack(trackParam);
+          setIsTrackDeckModalOpen(true);
         } catch (error) {
           console.error("Error fetching track data:", error);
         }
