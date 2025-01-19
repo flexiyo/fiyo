@@ -198,9 +198,10 @@ const TrackPlayer = () => {
           ) : (
             <button
               onClick={() => {
-                handleAudioPlay();
                 if (!currentTrack.link) {
                   getTrack(currentTrack.id);
+                } else {
+                  handleAudioPlay();
                 }
               }}
               className="bg-transparent ml-3 fixed"

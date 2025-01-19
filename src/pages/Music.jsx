@@ -194,20 +194,10 @@ const Music = ({ connectedToInternet }) => {
     const fetchTrackData = async () => {
       const queryParams = new URLSearchParams(location.search);
       const trackParam = queryParams.get("track");
-      const playParam = queryParams.get("play");
 
       if (trackParam) {
         try {
-          const trackData = await getTrackData(trackParam);
-
-          if (trackData) {
-            const { link, ...rest } = trackData;
-            setCurrentTrack(rest);
-            setIsTrackDeckModalOpen(true);
-            if (playParam === "true") {
-              setIsTrackDeckModalOpen(true);
-            }
-          }
+          getTrack(trackParam);
         } catch (error) {
           console.error("Error fetching track data:", error);
         }
@@ -216,58 +206,6 @@ const Music = ({ connectedToInternet }) => {
 
     fetchTrackData();
   }, [location.search, setCurrentTrack]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const queryParams = new URLSearchParams(location.search);
-      const queryParam = queryParams.get("q");
-      const trackParam = queryParams.get("track");
-      const playParam = queryParams.get("play");
-      const loopParam = queryParams.get("loop");
-
-      try {
-        if (trackParam && playParam === "true") {
-          await playTrack(trackParam);
-        }
-
-        if (loopParam === "true") {
-          setLoopAudio(true);
-        }
-
-        if (queryParam) {
-          const tracksResult = await searchTracks(queryParam);
-          setSearchText(queryParam);
-
-          if (playParam === "true" && !trackParam && tracksResult.length > 0) {
-            const firstTrack = tracksResult[0].id;
-            if (currentTrack.id !== firstTrack) {
-              await playTrack(firstTrack);
-            }
-          }
-        } else {
-          const topTracksResult = await getTopTracks();
-
-          if (
-            playParam === "true" &&
-            !trackParam &&
-            topTracksResult.length > 0
-          ) {
-            const randomTrack =
-              topTracksResult[
-                Math.floor(Math.random() * topTracksResult.length)
-              ].id;
-            if (currentTrack.id !== randomTrack) {
-              await playTrack(randomTrack);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -348,14 +286,14 @@ const Music = ({ connectedToInternet }) => {
   const startSpeechRecognition = async () => {
     setSpeechListening(true);
     if (!browserSupportsSpeechRecognition) setSpeechListening(false);
-      try {
-        WebSpeechRecognition.startListening({
-          language: "en-IN",
-        });
-        setSpeechListening(true);
-      } catch (error) {
-        console.error("Error starting web speech recognition:", error);
-      }
+    try {
+      WebSpeechRecognition.startListening({
+        language: "en-IN",
+      });
+      setSpeechListening(true);
+    } catch (error) {
+      console.error("Error starting web speech recognition:", error);
+    }
     setTimeout(() => {
       closeSpeechModal();
     }, 10000);
@@ -364,7 +302,7 @@ const Music = ({ connectedToInternet }) => {
   const stopSpeechRecognition = async () => {
     try {
       setSpeechListening(false);
-        await WebSpeechRecognition.stopListening();
+      await WebSpeechRecognition.stopListening();
     } catch (error) {
       console.error("Error stopping speech recognition:", error);
     }

@@ -295,9 +295,10 @@ const TrackDeck = () => {
               padding: isMobile ? "1.2rem" : ".8rem",
             }}
             onClick={() => {
-              handleAudioPlay();
               if (!currentTrack.link) {
                 getTrack(currentTrack.id);
+              } else {
+                handleAudioPlay();
               }
             }}
           >
