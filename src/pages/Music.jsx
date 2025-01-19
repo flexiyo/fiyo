@@ -193,6 +193,7 @@ const Music = ({ connectedToInternet }) => {
   useEffect(() => {
     const fetchTrackData = async () => {
       const queryParams = new URLSearchParams(location.search);
+      const q = queryParams.get("q");
       const trackParam = queryParams.get("track");
 
       if (trackParam) {
@@ -203,8 +204,14 @@ const Music = ({ connectedToInternet }) => {
           console.error("Error fetching track data:", error);
         }
       }
+
+      if (q) {
+        setSearchText(q);
+        searchTracks(q);
+      }
     };
 
+    getTopTracks();
     fetchTrackData();
   }, [location.search, setCurrentTrack]);
 
